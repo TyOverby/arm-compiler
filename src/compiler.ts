@@ -70,8 +70,8 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
             !Array.isArray(schema.items),
             "did not expect array item to be an array.");
 
-        const contents = compileSchema(path + "Value", schema.items as Schema, emitContext, true);
-        return emitContext.add(path, `${contents}[]`, schema);
+        const contents = compileSchema(path + "Value", schema.items as Schema, emitContext, false);
+        return emitContext.add(path, `(${contents})[]`, schema);
     }
 
     //
@@ -140,11 +140,20 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
     //
     // Type
     //
-    const type = `
+    let type = `
 {
     ${fields.join(",\n    ")}
 } ${additionalModifier}
     `;
+
+    if (fields.length === 0 && additionalName) {
+        return additionalName;
+    }
+
+    if (fields.length === 0 && additionalName === undefined) {
+        console.log(schema);
+    }
+
     if (shouldDeclare) {
         return emitContext.add(
             path,
@@ -163,16 +172,27 @@ function tryCompilePrimitive(schema: Schema): string | null {
             .join(" | ");
     }
 
+    if (schema.enum) {
+        return schema.enum.map(a => `"${a}"`).join(" | ");
+    }
+
+    if (Object.keys(schema).length === 0) {
+        return "any"
+    }
+
     switch (schema.type) {
         case "number": return "number";
         case "integer": return "number";
         case "null": return "null";
         case "boolean": return "boolean";
-        case "string": {
-            if (schema.enum) {
-                return schema.enum.map(a => `"${a}"`).join("|");
+        case "string": return "string";
+        case "object": {
+            // If this is an object that only has "type: object",
+            if (Object.keys(schema).length === 1) {
+                return "any";
+            } else {
+                break;
             }
-            return "string"
         }
     }
     return null;

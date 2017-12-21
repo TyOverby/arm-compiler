@@ -55,7 +55,7 @@ export class EmitContext {
             counter = 0;
         }
 
-        return `${good_name}${counter}`;
+        return `${good_name}${counter == 0 ? "" : `${counter}`}`;
     }
 
     preregister(path: string, schema: Schema) {
@@ -73,7 +73,6 @@ export class EmitContext {
 
     add(path: string, definition: string, schema: Schema): string {
         const name = this.defined.get(path) || this.calculateDotted(path, schema);
-
         const comment = schema.description ?
             `/** ${schema.description}\n${path} */\n` :
             `/** ${path} */\n`;
