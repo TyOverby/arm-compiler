@@ -151,7 +151,8 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
     }
 
     if (fields.length === 0 && additionalName === undefined) {
-        console.log(schema);
+        let p = path.split("/");
+        console.log([p.pop()].reverse(), schema);
     }
 
     if (shouldDeclare) {
@@ -176,6 +177,12 @@ function tryCompilePrimitive(schema: Schema): string | null {
         return schema.enum.map(a => `"${a}"`).join(" | ");
     }
 
+    /// Only has a description field
+    if (schema.description && Object.keys(schema).length === 1) {
+        const desc_hack = descriptionHack(schema.description);
+        if (desc_hack) { return desc_hack; }
+    }
+
     if (Object.keys(schema).length === 0) {
         return "any"
     }
@@ -198,3 +205,16 @@ function tryCompilePrimitive(schema: Schema): string | null {
     return null;
 }
 
+function descriptionHack(description: string): string | null {
+    const explicitTypeRegex = /Type: (string|integer|number|boolean|object)/;
+    const explicitResult = explicitTypeRegex.exec(description);
+    if (explicitResult) {
+        return tryCompilePrimitive({ type: explicitResult[1] } as Schema);
+    }
+
+    if (/The default value is (false|true)/.test(description)) {
+        return tryCompilePrimitive({ type: 'boolean' } as Schema);
+    }
+
+    return null;
+}
