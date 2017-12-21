@@ -1,17 +1,21 @@
 import * as fs from 'fs'
 import { JSONSchema4 } from 'json-schema';
 import { EmitContext } from './emitContext';
+import { fail } from 'assert';
+import { assert, is_blacklisted, clone, cleanse } from './util';
+
+export type Schema = Readonly<JSONSchema4>;
 
 const input_file = process.argv[2];
 const output_file = process.argv[3];
-const s: JSONSchema4 = JSON.parse(fs.readFileSync(process.argv[2]).toString()) as JSONSchema4;
+const s: Schema = JSON.parse(fs.readFileSync(process.argv[2]).toString()) as Schema;
 
 const emitContext = new EmitContext()
 
-compileSchema("#", s, emitContext);
+compileSchema("#", s, emitContext, true);
 fs.writeFileSync(output_file, emitContext.emit());
 
-function lookupPath(path: string): JSONSchema4 {
+function lookupPath(path: string): Schema {
     let parts = path.split("/");
     parts.shift(); // remove #
     let root: any = s;
@@ -21,10 +25,17 @@ function lookupPath(path: string): JSONSchema4 {
     return root;
 }
 
-function compileSchema(path: string, schema: JSONSchema4, emitContext: EmitContext): string {
+function compileSchema(path: string, schema: Schema, emitContext: EmitContext, shouldDeclare: boolean): string {
     const already_compiled = emitContext.lookup(path);
     if (already_compiled) {
         return already_compiled;
+    }
+
+    //
+    // Blacklisted
+    //
+    if (is_blacklisted(path, schema)) {
+        return "any /*blacklisted*/";
     }
 
     //
@@ -38,13 +49,63 @@ function compileSchema(path: string, schema: JSONSchema4, emitContext: EmitConte
     //
     // Pre-register (done to prevent infinite cycles)
     //
-    emitContext.preregister(path, schema);
+    if (shouldDeclare) {
+        emitContext.preregister(path, schema);
+    }
 
     //
     // Refs
     //
     if (schema.$ref) {
-        return compileSchema(schema.$ref, lookupPath(schema.$ref), emitContext);
+        return compileSchema(schema.$ref, lookupPath(schema.$ref), emitContext, true);
+    }
+
+    //
+    // Array
+    //
+    if (schema.type === 'array') {
+        if (schema.items === undefined) { return "any[]"; }
+
+        assert(
+            !Array.isArray(schema.items),
+            "did not expect array item to be an array.");
+
+        const contents = compileSchema(path + "Value", schema.items as Schema, emitContext, false);
+        return emitContext.add(path, `${contents}[]`, schema);
+    }
+
+    //
+    // Operators
+    //
+    const joinOperator = (op: string, appender: string, schemas: Schema[], merger: Schema | null): string => {
+        return schemas.map((s, i) => {
+            if (merger !== null) {
+                s = Object.assign(Object.assign({}, merger), s);
+            }
+            return compileSchema(path + `/${appender}${i}`, s, emitContext, false);
+        }).join(op)
+    };
+
+    if (schema.anyOf || schema.oneOf) {
+        if (schema.properties || schema.additionalItems || schema.additionalProperties) {
+            let cloned = clone(schema) as JSONSchema4;
+            cloned.anyOf = undefined;
+            cloned.oneOf = undefined;
+            return joinOperator('|', "AnyOfValue", (schema.anyOf || schema.oneOf) as Schema[], cloned);
+        } else {
+            return joinOperator('|', "AnyOfValue", (schema.anyOf || schema.oneOf) as Schema[], null);
+        }
+    }
+
+    if (schema.allOf) {
+        if (schema.properties || schema.additionalItems || schema.additionalProperties) {
+            let cloned = clone(schema) as JSONSchema4;
+            cloned.anyOf = undefined;
+            cloned.oneOf = undefined;
+            return joinOperator('&', "AllOfValue", schema.allOf, cloned);
+        } else {
+            return joinOperator('&', "AllOfValue", schema.allOf, null);
+        }
     }
 
     //
@@ -56,8 +117,9 @@ function compileSchema(path: string, schema: JSONSchema4, emitContext: EmitConte
         const requiredFields = new Set(schema.required || []);
         const properties = Object.keys(schema.properties);
         fields = properties.map(p => {
+            const psan = cleanse(p);
             const req = requiredFields.has(p) ? "" : "?";
-            return `${p}${req}: ${compileSchema(`${path}/${p}`, s_properties[p], emitContext)}`
+            return `${psan}${req}: ${compileSchema(`${path}/${p}`, s_properties[p], emitContext, true)}`
         });
     }
 
@@ -67,29 +129,29 @@ function compileSchema(path: string, schema: JSONSchema4, emitContext: EmitConte
     let additionalName: string | undefined;;
     if (schema.additionalProperties === true) { return "any /* actually any */" }
     if (schema.additionalProperties) {
-        additionalName = compileSchema(`${path}/additionalProperties/`, schema.additionalProperties, emitContext)
+        additionalName = compileSchema(`${path}/additionalProperties/`, schema.additionalProperties, emitContext, true)
     }
     const additionalModifier = additionalName ? `& ${additionalName}` : "";
 
     //
-    // Comments
-    //
-
-
-    //
     // Type
     //
-    return emitContext.add(
-        path,
-        `
+    const type = `
         {
             ${fields.join(",\n")}
-        } ${additionalModifier};
-        `.trim(),
-        schema);
+        } ${additionalModifier}
+    `;
+    if (shouldDeclare) {
+        return emitContext.add(
+            path,
+            type.trim(),
+            schema);
+    } else {
+        return type.trim();
+    }
 }
 
-function tryCompilePrimitive(schema: JSONSchema4): string | null {
+function tryCompilePrimitive(schema: Schema): string | null {
     if (Array.isArray(schema.type)) {
         return schema.type
             .map(a => tryCompilePrimitive({ 'type': a }))

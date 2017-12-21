@@ -1,5 +1,5 @@
-import { JSONSchema4 } from "json-schema";
-
+import { cleanse, toTitleCase, assert, tryGetResourceName } from './util';
+import { Schema } from './compiler';
 
 class Module {
     submodules: Map<string, Module> = new Map();
@@ -7,9 +7,17 @@ class Module {
 
     add(path: string[], definition: string) {
         if (path.length == 1) {
+            assert(
+                !this.definitions.has(path[0]),
+                `already defined \n\n ${path[0]} ${definition} \n\nVS\n\n ${this.definitions.get(path[0])}`);
+
             this.definitions.set(path[0], definition);
         } else {
             let submodule = path.shift() as string;
+            if (/[0-9]/.test(submodule[0])) {
+                submodule = "m" + submodule;
+            }
+
             if (!this.submodules.has(submodule)) {
                 this.submodules.set(submodule, new Module());
             }
@@ -20,7 +28,7 @@ class Module {
     emit(): string {
         const submoduleEmit = Array.from(this.submodules.entries()).map(a => {
             let [name, module] = a;
-            return `export module ${name} {${module.emit()}}`;
+            return `export module ${name} {\n${module.emit()}\n};`;
         }).join("\n\n");
 
         const definitionEmit = Array.from(this.definitions.values()).map(d =>
@@ -35,17 +43,27 @@ export class EmitContext {
     root: Module = new Module();
     defined: Map<string, string> = new Map();
 
-    private calculateDotted(path: string, schema: JSONSchema4): [string, string] {
-        const parts = path.split("/");
+    private calculateDotted(path: string, schema: Schema): [string, string] {
+        let parts = path.split("/").map(a => a.trim()).filter(a => a.length > 0);
         parts.shift(); // remove #
-        let name = schema.title || cleanse(parts.pop() as string)
+        let name =
+            schema.title ||
+            tryGetResourceName(schema) ||
+            cleanse(parts.pop() as string)
         name = toTitleCase(name);
         parts.push(name);
+        parts = parts.map(s => {
+            if (/[0-9]*/.test(s)) {
+                return `m${s}`;
+            } else {
+                return s;
+            }
+        });
 
-        return [parts.join("."), name];
+        return ["deployment_template." + parts.join("."), name];
     }
 
-    preregister(path: string, schema: JSONSchema4) {
+    preregister(path: string, schema: Schema) {
         const [dottedPath, _name] = this.calculateDotted(path, schema);
         this.defined.set(path, dottedPath);
     }
@@ -58,7 +76,7 @@ export class EmitContext {
         }
     }
 
-    add(path: string, definition: string, schema: JSONSchema4): string {
+    add(path: string, definition: string, schema: Schema): string {
         const [dotted, name] = this.calculateDotted(path, schema);
 
         const parts = path.split("/");
@@ -68,19 +86,11 @@ export class EmitContext {
 
         const comment = schema.description ? `/** ${schema.description} */\n` : "";
 
-        this.root.add(parts, `${comment}export type ${name} = ${definition}`);
+        this.root.add(parts, `${comment}export type ${name} = ${definition};`);
         return dotted;
     }
 
     emit(): string {
-        return this.root.emit();
+        return "export module deployment_template {" + this.root.emit() + "}";
     }
-}
-
-function cleanse(s: string): string {
-    return s.replace(/[^a-zA-Z]/g, "");
-}
-
-function toTitleCase(str: string) {
-    return str.replace(/\w\S*/g, function (txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
 }
