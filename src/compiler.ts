@@ -70,7 +70,7 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
             !Array.isArray(schema.items),
             "did not expect array item to be an array.");
 
-        const contents = compileSchema(path + "Value", schema.items as Schema, emitContext, false);
+        const contents = compileSchema(path + "Value", schema.items as Schema, emitContext, true);
         return emitContext.add(path, `${contents}[]`, schema);
     }
 
@@ -82,30 +82,34 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
             if (merger !== null) {
                 s = Object.assign(Object.assign({}, merger), s);
             }
-            return compileSchema(path + `/${appender}${i}`, s, emitContext, false);
+            return compileSchema(path + `/${appender}${i}`, s, emitContext, true);
         }).join(op)
     };
 
     if (schema.anyOf || schema.oneOf) {
+        let out: string;
         if (schema.properties || schema.additionalItems || schema.additionalProperties) {
             let cloned = clone(schema) as JSONSchema4;
             cloned.anyOf = undefined;
             cloned.oneOf = undefined;
-            return joinOperator('|', "AnyOfValue", (schema.anyOf || schema.oneOf) as Schema[], cloned);
+            out = joinOperator('|', "AnyOfValue", (schema.anyOf || schema.oneOf) as Schema[], cloned);
         } else {
-            return joinOperator('|', "AnyOfValue", (schema.anyOf || schema.oneOf) as Schema[], null);
+            out = joinOperator('|', "AnyOfValue", (schema.anyOf || schema.oneOf) as Schema[], null);
         }
+        return emitContext.add(path, out, schema);
     }
 
     if (schema.allOf) {
+        let out: string;
         if (schema.properties || schema.additionalItems || schema.additionalProperties) {
             let cloned = clone(schema) as JSONSchema4;
             cloned.anyOf = undefined;
             cloned.oneOf = undefined;
-            return joinOperator('&', "AllOfValue", schema.allOf, cloned);
+            out = joinOperator('&', "AllOfValue", schema.allOf, cloned);
         } else {
-            return joinOperator('&', "AllOfValue", schema.allOf, null);
+            out = joinOperator('&', "AllOfValue", schema.allOf, null);
         }
+        return emitContext.add(path, out, schema);
     }
 
     //
@@ -137,9 +141,9 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
     // Type
     //
     const type = `
-        {
-            ${fields.join(",\n")}
-        } ${additionalModifier}
+{
+    ${fields.join(",\n    ")}
+} ${additionalModifier}
     `;
     if (shouldDeclare) {
         return emitContext.add(

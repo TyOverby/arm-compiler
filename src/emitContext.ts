@@ -1,4 +1,4 @@
-import { cleanse, toTitleCase, assert, tryGetResourceName } from './util';
+import { cleanse, toTitleCase, assert, tryGetGoodName } from './util';
 import { Schema } from './compiler';
 
 class Module {
@@ -42,30 +42,25 @@ class Module {
 export class EmitContext {
     root: Module = new Module();
     defined: Map<string, string> = new Map();
+    good_names_counter: Map<string, number> = new Map();
 
-    private calculateDotted(path: string, schema: Schema): [string, string] {
-        let parts = path.split("/").map(a => a.trim()).filter(a => a.length > 0);
-        parts.shift(); // remove #
-        let name =
-            schema.title ||
-            tryGetResourceName(schema) ||
-            cleanse(parts.pop() as string)
-        name = toTitleCase(name);
-        parts.push(name);
-        parts = parts.map(s => {
-            if (/[0-9]*/.test(s)) {
-                return `m${s}`;
-            } else {
-                return s;
-            }
-        });
+    private calculateDotted(path: string, schema: Schema): string {
+        const good_name = tryGetGoodName(path, schema) || "t";
+        let counter;
+        if (this.good_names_counter.has(good_name)) {
+            counter = this.good_names_counter.get(good_name)! + 1;
+            this.good_names_counter.set(good_name, counter);
+        } else {
+            this.good_names_counter.set(good_name, 0);
+            counter = 0;
+        }
 
-        return ["deployment_template." + parts.join("."), name];
+        return `${good_name}${counter}`;
     }
 
     preregister(path: string, schema: Schema) {
-        const [dottedPath, _name] = this.calculateDotted(path, schema);
-        this.defined.set(path, dottedPath);
+        const name = this.calculateDotted(path, schema);
+        this.defined.set(path, name);
     }
 
     lookup(path: string): string | null {
@@ -77,20 +72,16 @@ export class EmitContext {
     }
 
     add(path: string, definition: string, schema: Schema): string {
-        const [dotted, name] = this.calculateDotted(path, schema);
+        const name = this.defined.get(path) || this.calculateDotted(path, schema);
 
-        const parts = path.split("/");
-        parts.shift(); // remove '#'
-        parts.pop();
-        parts.push(name);
-
-        const comment = schema.description ? `/** ${schema.description} */\n` : "";
-
-        this.root.add(parts, `${comment}export type ${name} = ${definition};`);
-        return dotted;
+        const comment = schema.description ?
+            `/** ${schema.description}\n${path} */\n` :
+            `/** ${path} */\n`;
+        this.root.add([name], `${comment}export type ${name} = ${definition};`);
+        return name;
     }
 
     emit(): string {
-        return "export module deployment_template {" + this.root.emit() + "}";
+        return "export module deployment_template {\n" + this.root.emit() + "\n}";
     }
 }

@@ -18,7 +18,7 @@ export function assert(condition: boolean, message?: string, bonus?: any): void 
     }
 }
 
-export function tryGetResourceName(schema: Schema): string | null {
+export function tryGetGoodName(path: string, schema: Schema): string | null {
     let type = schema.properties && schema.properties.type;
     if (type) {
         if (type.enum && type.enum.length >= 1) {
