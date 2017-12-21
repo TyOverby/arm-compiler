@@ -1,12 +1,15 @@
 import * as fs from 'fs'
 import { JSONSchema4 } from 'json-schema';
+import { EmitContext } from './emitContext';
 
+const input_file = process.argv[2];
+const output_file = process.argv[3];
 const s: JSONSchema4 = JSON.parse(fs.readFileSync(process.argv[2]).toString()) as JSONSchema4;
 
-const definitions: string[] = [];
+const emitContext = new EmitContext()
 
-compileSchema("#", s, new Map(), definitions);
-console.log(definitions.join("\n\n"));
+compileSchema("#", s, emitContext);
+fs.writeFileSync(output_file, emitContext.emit());
 
 function lookupPath(path: string): JSONSchema4 {
     let parts = path.split("/");
@@ -18,9 +21,10 @@ function lookupPath(path: string): JSONSchema4 {
     return root;
 }
 
-function compileSchema(path: string, schema: JSONSchema4, pathToType: Map<string, string>, buffer: string[]): string {
-    if (pathToType.has(path)) {
-        return pathToType.get(path)!;
+function compileSchema(path: string, schema: JSONSchema4, emitContext: EmitContext): string {
+    const already_compiled = emitContext.lookup(path);
+    if (already_compiled) {
+        return already_compiled;
     }
 
     //
@@ -32,20 +36,15 @@ function compileSchema(path: string, schema: JSONSchema4, pathToType: Map<string
     }
 
     //
-    // Name
+    // Pre-register (done to prevent infinite cycles)
     //
-    const name = schema.title || cleanse(path);
-    if (name === undefined) {
-        throw new Error("cant find name for ");
-    }
-    // Set is done here to prevent infinite recursion later on.
-    pathToType.set(path, name);
+    emitContext.preregister(path, schema);
 
     //
     // Refs
     //
     if (schema.$ref) {
-        return compileSchema(schema.$ref, lookupPath(schema.$ref), pathToType, buffer);
+        return compileSchema(schema.$ref, lookupPath(schema.$ref), emitContext);
     }
 
     //
@@ -58,7 +57,7 @@ function compileSchema(path: string, schema: JSONSchema4, pathToType: Map<string
         const properties = Object.keys(schema.properties);
         fields = properties.map(p => {
             const req = requiredFields.has(p) ? "" : "?";
-            return `${p}${req}: ${compileSchema(`${path}/${p}`, s_properties[p], pathToType, buffer)}`
+            return `${p}${req}: ${compileSchema(`${path}/${p}`, s_properties[p], emitContext)}`
         });
     }
 
@@ -68,27 +67,26 @@ function compileSchema(path: string, schema: JSONSchema4, pathToType: Map<string
     let additionalName: string | undefined;;
     if (schema.additionalProperties === true) { return "any /* actually any */" }
     if (schema.additionalProperties) {
-        additionalName = compileSchema(`${path}/additionalProperties/`, schema.additionalProperties, pathToType, buffer)
+        additionalName = compileSchema(`${path}/additionalProperties/`, schema.additionalProperties, emitContext)
     }
     const additionalModifier = additionalName ? `& ${additionalName}` : "";
 
     //
     // Comments
     //
-    const comment = schema.description ? `/** ${schema.description} */` : "";
 
 
     //
     // Type
     //
-    buffer.push(`
-            ${comment}
-            type ${name} = {
-                ${fields.join(",\n")}
-            } ${additionalModifier};
-        `.trim());
-
-    return name;
+    return emitContext.add(
+        path,
+        `
+        {
+            ${fields.join(",\n")}
+        } ${additionalModifier};
+        `.trim(),
+        schema);
 }
 
 function tryCompilePrimitive(schema: JSONSchema4): string | null {
@@ -114,6 +112,3 @@ function tryCompilePrimitive(schema: JSONSchema4): string | null {
     return null;
 }
 
-function cleanse(s: string): string {
-    return s.replace(/[^a-zA-Z]/g, "");
-}
