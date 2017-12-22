@@ -131,11 +131,14 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
     // AdditionalProperties
     //
     let additionalName: string | undefined;;
-    if (schema.additionalProperties === true) { return "any /* actually any */" }
     if (schema.additionalProperties) {
-        additionalName = compileSchema(`${path}/additionalProperties/`, schema.additionalProperties, emitContext, true)
+        if (schema.additionalProperties === true) {
+            fields.push("[p: string]: any")
+        } else {
+            additionalName = compileSchema(`${path}/additionalProperties/`, schema.additionalProperties, emitContext, true);
+            fields.push(`[p: string]: ${additionalName}`)
+        }
     }
-    const additionalModifier = additionalName ? `& ${additionalName}` : "";
 
     //
     // Type
@@ -143,12 +146,8 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
     let type = `
 {
     ${fields.join(",\n    ")}
-} ${additionalModifier}
+}
     `;
-
-    if (fields.length === 0 && additionalName) {
-        return additionalName;
-    }
 
     if (fields.length === 0 && additionalName === undefined) {
         let p = path.split("/");
