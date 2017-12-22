@@ -55,6 +55,9 @@ export class EmitContext {
             this.good_names_counter.set(good_name, 0);
             counter = 0;
         }
+        if (good_name === "t" && counter === 611) {
+            console.log("here");
+        }
 
         return `${good_name}${counter == 0 ? "" : `${counter}`}`;
     }

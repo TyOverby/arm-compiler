@@ -3,14 +3,13 @@ import { JSONSchema4 } from "json-schema";
 import { Schema } from "./compiler";
 
 export function cleanse(s: string): string {
-    const splitted = s.split("/");
-    s = splitted.map(toTitleCase).join("_");
-    return s.replace(/[^a-zA-Z0-9_]/g, "");
+    return s.replace(/[^a-zA-Z0-9_$]/g, "");
 }
 
-export function toTitleCase(str: string) {
+export function toTitleCase(str: string): string {
     str = str.trim();
-    return str.replace(/\w\S*/g, function (txt) { return txt.charAt(0).toUpperCase() + txt.substr(1); });
+    const splitted = str.split("/");
+    return splitted.map(s => s.charAt(0).toUpperCase() + s.substr(1)).join("_");
 }
 
 export function assert(condition: boolean, message?: string, bonus?: any): void {
@@ -29,10 +28,11 @@ export function tryGetGoodName(path: string, schema: Schema): string | null {
     // #/../properties/type
     //
     let type = schema.properties && schema.properties.type;
-    if (type) {
+    if (type && type) {
         if (type.enum && type.enum.length >= 1) {
-            let ret = cleanse(type.enum[0] as string);
-            if (schema.description && cleanse(schema.description) === ret) {
+            let before = type.enum[0] as string;
+            let ret = cleanse(before as string);
+            if (before.startsWith("Microsoft.")) {
                 return toTitleCase(ret + "Resource");
             }
             return toTitleCase(ret);
