@@ -3,6 +3,8 @@ import { JSONSchema4 } from "json-schema";
 import { Schema } from "./compiler";
 
 export function cleanse(s: string): string {
+    const splitted = s.split("/");
+    s = splitted.map(toTitleCase).join("_");
     return s.replace(/[^a-zA-Z0-9_]/g, "");
 }
 
@@ -67,9 +69,6 @@ export function tryGetGoodName(path: string, schema: Schema): string | null {
 }
 
 export function is_blacklisted(path: string, schema: Schema): boolean {
-    if (schema.description === "Microsoft.ServerManagement/nodes/sessions") {
-        return true;
-    }
     return false;
 }
 

@@ -1,362 +1,9 @@
 import { deployment_template } from "./out/deploymentTemplate"
 
-let t: deployment_template.t =
-
-{
+let t: deployment_template.t = {
     "schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "registryName": {
-            "type": "string",
-            "defaultValue": "trydotnet2cr",
-            "metadata": {
-                "description": "The name of the container registry."
-            }
-        },
-        "registryLocation": {
-            "type": "string",
-            "defaultValue": "Central US",
-            "metadata": {
-                "description": "The location of the container registry. This cannot be changed after the resource is created."
-            }
-        },
-        "registrySku": {
-            "type": "string",
-            "defaultValue": "Standard",
-            "metadata": {
-                "description": "The SKU of the container registry."
-            }
-        },
-        "registryApiVersion": {
-            "type": "string",
-            "defaultValue": "2017-10-01",
-            "metadata": {
-                "description": "The API version of the container registry."
-            }
-        },
-        "adminUserEnabled": {
-            "type": "bool",
-            "defaultValue": false,
-            "metadata": {
-                "description": "The value that indicates whether the admin user is enabled."
-            }
-        },
-        "registries_MLSContainerRegistry_name": {
-            "defaultValue": "mlscontainerregistry2.azurecr.io",
-            "type": "securestring"
-        },
-        "registries_MLSContainerRegistry_accessKey": {
-            "defaultValue": "xPSReNimrOlh4RnFn1iG8Ec/JjXSLbRe",
-            "type": "securestring"
-        },
-        "databaseAccounts_trydotnet_name": {
-            "defaultValue": "trydotnet2",
-            "type": "securestring"
-        },
-        "Redis_mls_name": {
-            "defaultValue": "mls2redis",
-            "type": "string"
-        },
-        "sites_trydotnet_name": {
-            "defaultValue": "trydotnet2",
-            "type": "string"
-        },
-        "profiles_MLS_CDN_name": {
-            "defaultValue": "MLSCDN2",
-            "type": "string"
-        },
-        "vaults_MLS_KEYs_name": {
-            "defaultValue": "MLS-KEYs2",
-            "type": "string"
-        },
-        "sites_MLS_Monitoring_name": {
-            "defaultValue": "MLS-Monitoring2",
-            "type": "string"
-        },
-        "sites_trydotnetagent_name": {
-            "defaultValue": "trydotnetagent2",
-            "type": "string"
-        },
-        "sites_trydotnet_staging_name": {
-            "defaultValue": "trydotnet-staging2",
-            "type": "string"
-        },
-        "actionGroups_MLS_DEV_name": {
-            "defaultValue": "MLS-DEV2",
-            "type": "string"
-        },
-        "components_trydotnet_name": {
-            "defaultValue": "trydotnet2",
-            "type": "string"
-        },
-        "config_web_name": {
-            "defaultValue": "web",
-            "type": "string"
-        },
-        "storageAccounts_mlsagent_name": {
-            "defaultValue": "mlsagent2",
-            "type": "string"
-        },
-        "sites_trydotnetagent_staging_name": {
-            "defaultValue": "trydotnetagent-staging2",
-            "type": "string"
-        },
-        "storageAccounts_trydotnet_name": {
-            "defaultValue": "trydotnet2",
-            "type": "string"
-        },
-        "autoscalesettings_default_name": {
-            "defaultValue": "default",
-            "type": "string"
-        },
-        "components_trydotnet_test_name": {
-            "defaultValue": "trydotnet-test2",
-            "type": "string"
-        },
-        "serverfarms_MLS_Web_ServicePlan_name": {
-            "defaultValue": "MLS-Web-ServicePlan2",
-            "type": "string"
-        },
-        "config_web_name_1": {
-            "defaultValue": "web",
-            "type": "string"
-        },
-        "config_web_name_2": {
-            "defaultValue": "web",
-            "type": "string"
-        },
-        "alertrules_File_load_failed_name": {
-            "defaultValue": "File load failed",
-            "type": "string"
-        },
-        "databaseAccounts_trydotnet_name_1": {
-            "defaultValue": "trydotnetdbname2",
-            "type": "string"
-        },
-        "webtests_index_200_trydotnet_name": {
-            "defaultValue": "index 200-trydotnet",
-            "type": "string"
-        },
-        "alertrules_Request_500_errors_name": {
-            "defaultValue": "Request 500 errors",
-            "type": "string"
-        },
-        "webtests_editor_200_trydotnet_name": {
-            "defaultValue": "editor 200-trydotnet",
-            "type": "string"
-        },
-        "namespaces_mls_orchestrator_name": {
-            "defaultValue": "mls-orchestrator-2",
-            "type": "string"
-        },
-        "config_web_name_3": {
-            "defaultValue": "web",
-            "type": "string"
-        },
-        "endpoints_trydotnet_name": {
-            "defaultValue": "trydotnet",
-            "type": "string"
-        },
-        "namespaces_mls_orchestrator_test_name": {
-            "defaultValue": "mls-orchestrator-test2",
-            "type": "string"
-        },
-        "serverfarms_MLS_Web_Staging_ServicePlan_name": {
-            "defaultValue": "MLS-Web-Staging-ServicePlan",
-            "type": "string"
-        },
-        "webtests_basic_availability_trydotnet_name": {
-            "defaultValue": "basic availability-trydotnet",
-            "type": "string"
-        },
-        "jobCollections_MLS_Orchestrator_jobs_name": {
-            "defaultValue": "MLS-Orchestrator-jobs",
-            "type": "string"
-        },
-        "storageAccounts_mlsdockerregistry143619_name": {
-            "defaultValue": "mlsdockerregistry1436192",
-            "type": "string"
-        },
-        "alertrules_Min_Development_environments_name": {
-            "defaultValue": "Min Development environments",
-            "type": "string"
-        },
-        "hostNameBindings_try.dot.net_name": {
-            "defaultValue": "try.dot.net",
-            "type": "string"
-        },
-        "alertrules_Failure_Anomalies___trydotnet_name": {
-            "defaultValue": "Failure Anomalies - trydotnet",
-            "type": "string"
-        },
-        "serverfarms_WebApplication1220170118014620Plan_name": {
-            "defaultValue": "WebApplication1220170118014620Plan",
-            "type": "string"
-        },
-        "alertrules_Failed_request___HTTP_error_500_name": {
-            "defaultValue": "Failed request - HTTP error 500",
-            "type": "string"
-        },
-        "queues_create_name": {
-            "defaultValue": "create",
-            "type": "string"
-        },
-        "alertrules_Failure_Anomalies___trydotnet_test_name": {
-            "defaultValue": "Failure Anomalies - trydotnet-test",
-            "type": "string"
-        },
-        "webtests_compile_the_same_valid_code_trydotnet_name": {
-            "defaultValue": "compile the same valid code-trydotnet",
-            "type": "string"
-        },
-        "deployments_637861512697004611_name": {
-            "defaultValue": "6378615126970046112",
-            "type": "string"
-        },
-        "deployments_637851512696845555_name": {
-            "defaultValue": "6378515126968455552",
-            "type": "string"
-        },
-        "deployments_637841512696753691_name": {
-            "defaultValue": "6378415126967536912",
-            "type": "string"
-        },
-        "deployments_531601508613608512_name": {
-            "defaultValue": "5316015086136085122",
-            "type": "string"
-        },
-        "deployments_531591508612942085_name": {
-            "defaultValue": "5315915086129420852",
-            "type": "string"
-        },
-        "deployments_531581508612175873_name": {
-            "defaultValue": "5315815086121758732",
-            "type": "string"
-        },
-        "deployments_531571508611907534_name": {
-            "defaultValue": "5315715086119075342",
-            "type": "string"
-        },
-        "deployments_531561508611805568_name": {
-            "defaultValue": "5315615086118055682",
-            "type": "string"
-        },
-        "deployments_531551508610276229_name": {
-            "defaultValue": "5315515086102762292",
-            "type": "string"
-        },
-        "deployments_531541508607505636_name": {
-            "defaultValue": "5315415086075056362",
-            "type": "string"
-        },
-        "queues_create_name_1": {
-            "defaultValue": "create",
-            "type": "string"
-        },
-        "queues_assignlease_name": {
-            "defaultValue": "assignlease",
-            "type": "string"
-        },
-        "queues_deprovision_name": {
-            "defaultValue": "deprovision",
-            "type": "string"
-        },
-        "origins_try_dot_net_name": {
-            "defaultValue": "try-dot-net",
-            "type": "string"
-        },
-        "queues_assignlease_name_1": {
-            "defaultValue": "assignlease",
-            "type": "string"
-        },
-        "queues_deprovision_name_1": {
-            "defaultValue": "deprovision",
-            "type": "string"
-        },
-        "queues_pollforreadiness_name": {
-            "defaultValue": "pollforreadiness",
-            "type": "string"
-        },
-        "hostNameBindings_trydotnet.azurewebsites.net_name": {
-            "defaultValue": "trydotnet-2.azurewebsites.net",
-            "type": "string"
-        },
-        "queues_checkcontainerhealth_name": {
-            "defaultValue": "checkcontainerhealth",
-            "type": "string"
-        },
-        "queues_pollforreadiness_name_1": {
-            "defaultValue": "pollforreadiness",
-            "type": "string"
-        },
-        "AuthorizationRules_orchestrator_name": {
-            "defaultValue": "orchestrator",
-            "type": "string"
-        },
-        "queues_checkcontainerhealth_name_1": {
-            "defaultValue": "checkcontainerhealth",
-            "type": "string"
-        },
-        "hostNameBindings_mls_monitoring.azurewebsites.net_name": {
-            "defaultValue": "mls-monitoring2.azurewebsites.net",
-            "type": "string"
-        },
-        "alertrules_index_200_trydotnet_95ca58e5_e123_49f3_bbcf_fd2fdc71ee1b_name": {
-            "defaultValue": "index 200-trydotnet-95ca58e5-e123-49f3-bbcf-fd2fdc71ee1b",
-            "type": "string"
-        },
-        "alertrules_editor_200_trydotnet_23698f60_e608_4c9e_bfd0_bb02d7ac4456_name": {
-            "defaultValue": "editor 200-trydotnet-23698f60-e608-4c9e-bfd0-bb02d7ac4456",
-            "type": "string"
-        },
-        "certificates_2C6DC7B7612545869CA9536BCC758F5CA00B342B#MLS_RG_WestUSwebspace_name": {
-            "defaultValue": "2C6DC7B7612545869CA9536BCC758F5CA00B342B#MLS-RG-WestUSwebspace",
-            "type": "string"
-        },
-        "certificates_7B090701A45E4E032CB81DEF59112054B486E52B#MLS_RG_WestUSwebspace_name": {
-            "defaultValue": "7B090701A45E4E032CB81DEF59112054B486E52B#MLS-RG-WestUSwebspace",
-            "type": "string"
-        },
-        "AuthorizationRules_orchestrator_dev_name": {
-            "defaultValue": "orchestrator-dev",
-            "type": "string"
-        },
-        "jobs_mls_orchestrator_pool_topoff_name": {
-            "defaultValue": "mls-orchestrator-pool-topoff",
-            "type": "string"
-        },
-        "hostNameBindings_trydotnet_staging.azurewebsites.net_name": {
-            "defaultValue": "trydotnet-staging-2.azurewebsites.net",
-            "type": "string"
-        },
-        "jobs_mls_orchestrator_pool_refresh_name": {
-            "defaultValue": "mls-orchestrator-pool-refresh",
-            "type": "string"
-        },
-        "AuthorizationRules_RootManageSharedAccessKey_name": {
-            "defaultValue": "RootManageSharedAccessKey",
-            "type": "string"
-        },
-        "alertrules_basic_availability_trydotnet_72f655dc_42c2_4582_81e8_af7ac2200131_name": {
-            "defaultValue": "basic availability-trydotnet-72f655dc-42c2-4582-81e8-af7ac2200131",
-            "type": "string"
-        },
-        "AuthorizationRules_RootManageSharedAccessKey_name_1": {
-            "defaultValue": "RootManageSharedAccessKey",
-            "type": "string"
-        },
-        "hostNameBindings_trydotnetagent_staging.azurewebsites.net_name": {
-            "defaultValue": "trydotnetagent-staging-2.azurewebsites.net",
-            "type": "string"
-        },
-        "alertrules_compile_the_same_valid_code_trydotnet_ebbac66d_8aea_4083_aca9_75c73874d36c_name": {
-            "defaultValue": "compile the same valid code-trydotnet-ebbac66d-8aea-4083-aca9-75c73874d36c",
-            "type": "string"
-        },
-        "jobs_mls_orchestrator_pool_check_container_health_name": {
-            "defaultValue": "mls-orchestrator-pool-check_container_health",
-            "type": "string"
-        }
     },
     "variables": {},
     "resources": [
@@ -364,13 +11,14 @@ let t: deployment_template.t =
             "name": "[parameters('registryName')]",
             "type": "Microsoft.ContainerRegistry/registries",
             "location": "[parameters('registryLocation')]",
-            "apiVersion": "[parameters('registryApiVersion')]",
+            "apiVersion": "2016-06-27-preview",
             "sku": {
                 "name": "[parameters('registrySku')]"
             },
             "properties": {
-                "adminUserEnabled": "[parameters('adminUserEnabled')]"
-            }
+                "adminUserEnabled": "[parameters('adminUserEnabled')]",
+                "storageAccount": "test"
+            },
         },
         {
             "comments": "Generalized from resource: '/subscriptions/fea3a3c9-c4a3-4743-9835-1502a54705e9/resourceGroups/MLS-RG/providers/Microsoft.Cache/Redis/mls'.",
@@ -379,7 +27,6 @@ let t: deployment_template.t =
             "apiVersion": "2016-04-01",
             "location": "West US",
             "tags": {},
-            "scale": null,
             "properties": {
                 "redisVersion": "3.2.7",
                 "sku": {
@@ -407,7 +54,6 @@ let t: deployment_template.t =
             "apiVersion": "2016-04-02",
             "location": "WestUs",
             "tags": {},
-            "scale": null,
             "properties": {
                 "provisioningState": "Succeeded",
                 "resourceState": "Active"
@@ -424,7 +70,6 @@ let t: deployment_template.t =
             "tags": {
                 "defaultExperience": "DocumentDB"
             },
-            "scale": null,
             "properties": {
                 "databaseAccountOfferType": "Standard",
                 "consistencyPolicy": {
@@ -443,7 +88,6 @@ let t: deployment_template.t =
             "apiVersion": "2015-06-01",
             "location": "westus",
             "tags": {},
-            "scale": null,
             "properties": {
                 "sku": {
                     "family": "A",

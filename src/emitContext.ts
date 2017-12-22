@@ -43,6 +43,7 @@ export class EmitContext {
     root: Module = new Module();
     defined: Map<string, string> = new Map();
     good_names_counter: Map<string, number> = new Map();
+    resources_list: string[] = [];
 
     private calculateDotted(path: string, schema: Schema): string {
         const good_name = tryGetGoodName(path, schema) || "t";
@@ -77,10 +78,15 @@ export class EmitContext {
             `/** ${schema.description}\n${path} */\n` :
             `/** ${path} */\n`;
         this.root.add([name], `${comment}export type ${name} = ${definition};`);
+        if (name.endsWith("Resource")) {
+            this.resources_list.push(name);
+        }
         return name;
     }
 
     emit(): string {
-        return "export module deployment_template {\n" + this.root.emit() + "\n}";
+        const resource_mappings = this.resources_list.map(r => `    export type ${r} = deployment_template.${r};`)
+        return "export module deployment_template {\n" + this.root.emit() + "\n}\n" +
+            `export module resources {\n${resource_mappings.join("\n")}\n}`;
     }
 }
