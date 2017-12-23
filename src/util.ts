@@ -20,6 +20,10 @@ export function assert(condition: boolean, message?: string, bonus?: any): void 
     }
 }
 
+export function isResource(name: string): boolean {
+    return /Resource[0-9]*$/.test(name);
+}
+
 export function tryGetGoodName(path: string, schema: Schema): string | null {
     const split = path.split("/");
     split.shift();

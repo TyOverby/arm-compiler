@@ -2,12 +2,21 @@ import * as fs from 'fs'
 import { JSONSchema4 } from 'json-schema';
 import { EmitContext } from './emitContext';
 import { fail } from 'assert';
-import { assert, is_blacklisted, clone, cleanse, tryGetGoodName } from './util';
+import { assert, is_blacklisted, clone, cleanse, tryGetGoodName, isResource, toTitleCase } from './util';
 
 export type Schema = Readonly<JSONSchema4>;
 
 const input_file = process.argv[2];
 const output_file = process.argv[3];
+const whitelist = new Set([
+    "Microsoft.Cache/Redis",
+    "Microsoft.Web/sites",
+    "Microsoft.ContainerRegistry/registries",
+    "Microsoft.Cdn/profiles",
+    "Microsoft.Cdn/profiles/endpoints",
+    "Microsoft.Cdn/profiles/endpoints/origins",
+].map(s => toTitleCase(cleanse(s) + "Resource")));
+
 const s: Schema = JSON.parse(fs.readFileSync(process.argv[2]).toString()) as Schema;
 
 const emitContext = new EmitContext()
@@ -31,18 +40,26 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
         return already_compiled;
     }
 
+
     //
     // Ways to back out of shouldDeclare = false
     //
 
     // Back out if you are a resource
     const goodNameAttempt = tryGetGoodName(path, schema);
-    if (goodNameAttempt && goodNameAttempt.endsWith("Resource")) {
+    if (goodNameAttempt && isResource(goodNameAttempt)) {
         shouldDeclare = true;
+
+        // Don't include any resource groups that arent in the whitelist.
+        // By returning early here, you avoid emitting any dependencies.
+        if (!whitelist.has(goodNameAttempt)) {
+            return "never";
+        }
     }
     if (schema.description) {
         shouldDeclare = true;
     }
+
 
     //
     // Blacklisted
@@ -86,8 +103,8 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
         assert(
             !Array.isArray(schema.items),
             "did not expect array item to be an array.");
-
-        const contents = compileSchema(path + "Value", schema.items as Schema, emitContext, false);
+        const shouldDeclare = tryGetGoodName(path, schema) === "Resources";
+        const contents = compileSchema(path + "Value", schema.items as Schema, emitContext, shouldDeclare);
         return emitContext.add(path, `(${contents})[]`, schema);
     }
 
@@ -137,9 +154,9 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
         const requiredFields = new Set(schema.required || []);
         const properties = Object.keys(schema.properties);
         fields = properties.map(p => {
-            const psan = cleanse(p);
+            const propName = /^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test(p) ? p : `"${p}"`;
             const req = requiredFields.has(p) ? "" : "?";
-            return `${psan}${req}: ${compileSchema(`${path}/${p}`, s_properties[p], emitContext, false)}`
+            return `${propName}${req}: ${compileSchema(`${path}/${p}`, s_properties[p], emitContext, false)}`
         });
     }
 
@@ -203,7 +220,14 @@ function tryCompilePrimitive(schema: Schema): string | null {
         case "integer": return "number";
         case "null": return "null";
         case "boolean": return "boolean";
-        case "string": return "string";
+        case "string": {
+            if (schema.description && schema.description.startsWith("Deployment template expression.")) {
+                // We never use deployment template expressions, so instead of allowing practically every 
+                return "never";
+            } else {
+                return "string"
+            }
+        };
         case "object": {
             // If this is an object that only has "type: object",
             if (Object.keys(schema).length === 1) {

@@ -1,4 +1,4 @@
-import { cleanse, toTitleCase, assert, tryGetGoodName } from './util';
+import { cleanse, toTitleCase, assert, tryGetGoodName, isResource } from './util';
 import { Schema } from './compiler';
 
 class Module {
@@ -81,7 +81,8 @@ export class EmitContext {
             `/** ${schema.description}\n${path} */\n` :
             `/** ${path} */\n`;
         this.root.add([name], `${comment}export type ${name} = ${definition};`);
-        if (name.endsWith("Resource")) {
+
+        if (isResource(name)) {
             this.resources_list.push(name);
         }
         return name;
