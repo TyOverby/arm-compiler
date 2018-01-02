@@ -31,11 +31,11 @@ export function tryGetGoodName(path: string, schema: Schema): string | null {
     //
     // #/../properties/type
     //
-    let type = schema.properties && schema.properties.type;
+    const type = schema.properties && schema.properties.type;
     if (type && type) {
         if (type.enum && type.enum.length >= 1) {
-            let before = type.enum[0] as string;
-            let ret = cleanse(before as string);
+            const before = type.enum[0] as string;
+            const ret = cleanse(before as string);
             if (before.startsWith("Microsoft.")) {
                 return toTitleCase(ret + "Resource");
             }
@@ -46,14 +46,14 @@ export function tryGetGoodName(path: string, schema: Schema): string | null {
     //
     // #/definitions/{name}
     //
-    if (split[0] === 'definitions' && split.length == 2) {
+    if (split[0] === "definitions" && split.length === 2) {
         return toTitleCase(split[1]);
     }
 
     //
     // #/{name}
     //
-    if (split.length == 1) {
+    if (split.length === 1) {
         return toTitleCase(split[0]);
     }
 

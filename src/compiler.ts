@@ -1,13 +1,13 @@
-import * as fs from 'fs'
-import { JSONSchema4 } from 'json-schema';
-import { EmitContext } from './emitContext';
-import { fail } from 'assert';
-import { assert, is_blacklisted, clone, cleanse, tryGetGoodName, isResource, toTitleCase } from './util';
+import { fail } from "assert";
+import * as fs from "fs";
+import { JSONSchema4 } from "json-schema";
+import { EmitContext } from "./emitContext";
+import { assert, cleanse, clone, is_blacklisted, isResource, toTitleCase, tryGetGoodName } from "./util";
 
 export type Schema = Readonly<JSONSchema4>;
 
-const input_file = process.argv[2];
-const output_file = process.argv[3];
+const inputFile = process.argv[2];
+const outputFile = process.argv[3];
 const whitelist = new Set([
     "Microsoft.Cache/Redis",
     "Microsoft.Web/sites",
@@ -17,17 +17,17 @@ const whitelist = new Set([
     "Microsoft.Cdn/profiles/endpoints/origins",
 ].map(s => toTitleCase(cleanse(s) + "Resource")));
 
-const s: Schema = JSON.parse(fs.readFileSync(process.argv[2]).toString()) as Schema;
+const targetSchema: Schema = JSON.parse(fs.readFileSync(process.argv[2]).toString()) as Schema;
 
-const emitContext = new EmitContext()
+const globalEmitContext = new EmitContext();
 
-compileSchema("#", s, emitContext, true);
-fs.writeFileSync(output_file, emitContext.emit());
+compileSchema("#", targetSchema, globalEmitContext, true);
+fs.writeFileSync(outputFile, globalEmitContext.emit());
 
 function lookupPath(path: string): Schema {
-    let parts = path.split("/");
+    const parts = path.split("/");
     parts.shift(); // remove #
-    let root: any = s;
+    let root: any = targetSchema;
     for (const part of parts) {
         root = root[part];
     }
@@ -35,11 +35,10 @@ function lookupPath(path: string): Schema {
 }
 
 function compileSchema(path: string, schema: Schema, emitContext: EmitContext, shouldDeclare: boolean): string {
-    const already_compiled = emitContext.lookup(path);
-    if (already_compiled) {
-        return already_compiled;
+    const alreadyCompiled = emitContext.lookup(path);
+    if (alreadyCompiled) {
+        return alreadyCompiled;
     }
-
 
     //
     // Ways to back out of shouldDeclare = false
@@ -60,7 +59,6 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
         shouldDeclare = true;
     }
 
-
     //
     // Blacklisted
     //
@@ -77,7 +75,7 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
     }
 
     if (Object.keys(schema).length === 0) {
-        return "any"
+        return "any";
     }
 
     //
@@ -97,14 +95,14 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
     //
     // Array
     //
-    if (schema.type === 'array') {
+    if (schema.type === "array") {
         if (schema.items === undefined) { return "any[]"; }
 
         assert(
             !Array.isArray(schema.items),
             "did not expect array item to be an array.");
-        const shouldDeclare = tryGetGoodName(path, schema) === "Resources";
-        const contents = compileSchema(path + "Value", schema.items as Schema, emitContext, shouldDeclare);
+        const shouldDeclareArray = tryGetGoodName(path, schema) === "Resources";
+        const contents = compileSchema(path + "Value", schema.items as Schema, emitContext, shouldDeclareArray);
         return emitContext.add(path, `(${contents})[]`, schema);
     }
 
@@ -118,7 +116,7 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
             }
             return compileSchema(path + `/${appender}${i}`, s, emitContext, false);
         }).join(op);
-        ret = `(${ret})`
+        ret = `(${ret})`;
 
         if (shouldDeclare || schemas.length > 4) {
             return emitContext.add(path, ret, schema);
@@ -133,9 +131,8 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
 
         const operator = (schema.anyOf || schema.oneOf) ? "|" : "&";
         const name = (schema.anyOf || schema.oneOf) ? "AnyOfValue" : "AllOfValue";
-        let out: string;
         if (schema.properties || schema.additionalItems || schema.additionalProperties) {
-            let cloned = clone(schema) as JSONSchema4;
+            const cloned = clone(schema) as JSONSchema4;
             cloned.anyOf = undefined;
             cloned.oneOf = undefined;
             cloned.allOf = undefined;
@@ -150,41 +147,45 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
     //
     let fields: string[] = [];
     if (schema.properties) {
-        const s_properties = schema.properties;
+        const sProperties = schema.properties;
         const requiredFields = new Set(schema.required || []);
         const properties = Object.keys(schema.properties);
-        fields = properties.map(p => {
+        fields = properties.map((p) => {
             const propName = /^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test(p) ? p : `"${p}"`;
             const req = requiredFields.has(p) ? "" : "?";
-            return `${propName}${req}: ${compileSchema(`${path}/${p}`, s_properties[p], emitContext, false)}`
+            return `${propName}${req}: ${compileSchema(`${path}/${p}`, sProperties[p], emitContext, false)}`;
         });
     }
 
     //
     // AdditionalProperties
     //
-    let additionalName: string | undefined;;
+    let additionalName: string | undefined;
     if (schema.additionalProperties) {
         if (schema.additionalProperties === true) {
-            fields.push("[p: string]: any")
+            fields.push("[p: string]: any");
         } else {
-            additionalName = compileSchema(`${path}/additionalProperties/`, schema.additionalProperties, emitContext, false);
-            fields.push(`[p: string]: ${additionalName}`)
+            additionalName = compileSchema(
+                `${path}/additionalProperties/`,
+                schema.additionalProperties,
+                emitContext,
+                false);
+            fields.push(`[p: string]: ${additionalName}`);
         }
     }
 
     //
     // Type
     //
-    let type = `
+    const type = `
 {
     ${fields.join(",\n    ")}
 }
     `;
 
     if (fields.length === 0 && additionalName === undefined) {
-        let p = path.split("/");
-        console.log([p.pop()].reverse(), schema);
+        const p = path.split("/");
+        console.log(p.pop(), schema);
     }
 
     if (shouldDeclare) {
@@ -200,19 +201,19 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
 function tryCompilePrimitive(schema: Schema): string | null {
     if (Array.isArray(schema.type)) {
         return schema.type
-            .map(a => tryCompilePrimitive({ 'type': a }))
-            .filter(a => a != null) // TODO: warn on this
+            .map((a) => tryCompilePrimitive({ type: a }))
+            .filter((a) => a != null) // TODO: warn on this
             .join(" | ");
     }
 
     if (schema.enum) {
-        return schema.enum.map(a => `"${a}"`).join(" | ");
+        return schema.enum.map((a) => `"${a}"`).join(" | ");
     }
 
     /// Only has a description field
     if (schema.description && Object.keys(schema).length === 1) {
-        const desc_hack = descriptionHack(schema.description);
-        if (desc_hack) { return desc_hack; }
+        const descHack = descriptionHack(schema.description);
+        if (descHack) { return descHack; }
     }
 
     switch (schema.type) {
@@ -222,12 +223,12 @@ function tryCompilePrimitive(schema: Schema): string | null {
         case "boolean": return "boolean";
         case "string": {
             if (schema.description && schema.description.startsWith("Deployment template expression.")) {
-                // We never use deployment template expressions, so instead of allowing practically every 
+                // We never use deployment template expressions, so instead of allowing practically every
                 return "never";
             } else {
-                return "string"
+                return "string";
             }
-        };
+        }
         case "object": {
             // If this is an object that only has "type: object",
             if (Object.keys(schema).length === 1) {
@@ -248,7 +249,7 @@ function descriptionHack(description: string): string | null {
     }
 
     if (/The default value is (false|true)/.test(description)) {
-        return tryCompilePrimitive({ type: 'boolean' } as Schema);
+        return tryCompilePrimitive({ type: "boolean" } as Schema);
     }
 
     return null;

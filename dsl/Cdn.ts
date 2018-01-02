@@ -1,29 +1,29 @@
 
-import { Resource, ResourceEmit, ResourceBase, EmitProperties } from './Resource';
-import { resources, deployment_template } from '../out/deploymentTemplate';
+import { deployment_template, resources } from "../out/deploymentTemplate";
+import { EmitProperties, Resource, ResourceBase, ResourceEmit } from "./Resource";
 
 class CdnProfile extends ResourceBase implements Resource {
-    dependencies: Resource[] = [];
+    public dependencies: Resource[] = [];
 
-    emit(emitProperties: EmitProperties): ResourceEmit[] {
+    public emit(emitProperties: EmitProperties): ResourceEmit[] {
         const cdnProfile: resources.MicrosoftCdnprofilesResource1 & deployment_template.ResourceBase = {
             name: this.name,
             type: "Microsoft.Cdn/profiles",
             apiVersion: "2016-04-02",
             location: "WestUs",
             sku: {
-                "name": "Premium_Verizon"
+                name: "Premium_Verizon",
             },
-        }
+        };
         return [cdnProfile];
     }
 
 }
 
 class CdnProfileEndpoint extends ResourceBase implements Resource {
-    hostname: string;
-    originName: string;
-    dependencies: Resource[];
+    public hostname: string;
+    public originName: string;
+    public dependencies: Resource[];
     constructor(name: string, hostname: string, originName: string, profile: CdnProfile) {
         super(name);
         this.hostname = hostname;
@@ -31,7 +31,7 @@ class CdnProfileEndpoint extends ResourceBase implements Resource {
         this.dependencies = [profile];
     }
 
-    emit(emitProperties: EmitProperties): ResourceEmit[] {
+    public emit(emitProperties: EmitProperties): ResourceEmit[] {
         const cdnProfileEndpoint: resources.MicrosoftCdnprofilesendpointsResource1 & deployment_template.ResourceBase = {
             type: "Microsoft.Cdn/profiles/endpoints",
             name: this.name,
@@ -44,10 +44,10 @@ class CdnProfileEndpoint extends ResourceBase implements Resource {
                         name: this.originName,
                         properties: {
                             hostName: this.hostname,
-                        }
-                    }
+                        },
+                    },
                 ],
-                isCompressionEnabled: true
+                isCompressionEnabled: true,
             },
         };
 
@@ -56,8 +56,8 @@ class CdnProfileEndpoint extends ResourceBase implements Resource {
 }
 
 class CdnProfileEndpointOrigin extends ResourceBase implements Resource {
-    hostname: string;
-    dependencies: Resource[];
+    public hostname: string;
+    public dependencies: Resource[];
 
     constructor(name: string, hostname: string, profile: CdnProfile, endpoint: CdnProfileEndpoint) {
         super(name);
@@ -65,13 +65,13 @@ class CdnProfileEndpointOrigin extends ResourceBase implements Resource {
         this.dependencies = [profile, endpoint];
     }
 
-    emit(emitProperties: EmitProperties): ResourceEmit[] {
+    public emit(emitProperties: EmitProperties): ResourceEmit[] {
         const endpointOrigin: resources.MicrosoftCdnprofilesendpointsoriginsResource1 & deployment_template.ResourceBase = {
             type: "Microsoft.Cdn/profiles/endpoints/origins",
             name: this.name,
             apiVersion: "2016-04-02",
             properties: {
-                hostName: this.hostname
+                hostName: this.hostname,
             },
         };
 
@@ -80,7 +80,7 @@ class CdnProfileEndpointOrigin extends ResourceBase implements Resource {
 }
 
 export class Cdn extends ResourceBase implements Resource {
-    dependencies: Resource[];
+    public dependencies: Resource[];
     constructor(name: string, hostname: string, originName: string) {
         super(name);
         const profile = new CdnProfile(`${name}_profile`);
@@ -89,7 +89,7 @@ export class Cdn extends ResourceBase implements Resource {
         this.dependencies = [profile, endpoint, endpointOrigin];
     }
 
-    emit(emitProperties: EmitProperties): ResourceEmit[] {
+    public emit(emitProperties: EmitProperties): ResourceEmit[] {
         return [];
     }
 }

@@ -1,10 +1,10 @@
-import { Resource, ResourceEmit, ResourceBase, EmitProperties } from './Resource';
-import { resources, deployment_template } from '../out/deploymentTemplate';
+import { deployment_template, resources } from "../out/deploymentTemplate";
+import { EmitProperties, Resource, ResourceBase, ResourceEmit } from "./Resource";
 
 export class Redis extends ResourceBase implements Resource {
-    dependencies: Resource[] = [];
+    public dependencies: Resource[] = [];
 
-    emit(emitProperties: EmitProperties): ResourceEmit[] {
+    public emit(emitProperties: EmitProperties): ResourceEmit[] {
         const redisResource: resources.MicrosoftCacheRedisResource2 & deployment_template.ResourceBase = {
             type: "Microsoft.Cache/Redis",
             name: this.name,
@@ -15,16 +15,16 @@ export class Redis extends ResourceBase implements Resource {
                 sku: {
                     name: "Standard",
                     family: "C",
-                    capacity: 1
+                    capacity: 1,
                 },
                 enableNonSslPort: false,
                 redisConfiguration: {
                     "maxclients": "1000",
                     "maxmemory-reserved": "50",
                     "maxfragmentationmemory-reserved": "50",
-                    "maxmemory-delta": "50"
-                }
-            }
+                    "maxmemory-delta": "50",
+                },
+            },
         };
 
         return [redisResource];
