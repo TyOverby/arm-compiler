@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "debug-compile": "ts-node --inspect-brk compiler/compiler.ts compiler/_template.json out/deploymentTemplate.d.ts",
-    "compile": "ts-node compiler/compiler.ts compiler/_template.json out/deploymentTemplate.d.ts",
+    "debug-compile": "ts-node --inspect-brk compiler/compiler.ts compiler/_template.json out/deploymentTemplate.d.ts whitelist.txt",
+    "compile": "ts-node compiler/compiler.ts compiler/_template.json out/deploymentTemplate.d.ts whitelist.txt",
     "format": "tsfmt -r out/deploymentTemplate.d.ts",
     "build": "ts-node templates/example.ts",
     "test": "mocha -r ts-node/register tests/**/*.ts"

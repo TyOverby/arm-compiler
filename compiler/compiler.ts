@@ -8,16 +8,17 @@ export type Schema = Readonly<JSONSchema4>;
 
 const inputFile = process.argv[2];
 const outputFile = process.argv[3];
-const whitelist = new Set([
-    "Microsoft.Cache/Redis",
-    "Microsoft.Web/sites",
-    "Microsoft.ContainerRegistry/registries",
-    "Microsoft.Cdn/profiles",
-    "Microsoft.Cdn/profiles/endpoints",
-    "Microsoft.Cdn/profiles/endpoints/origins",
-].map(s => toTitleCase(cleanse(s) + "Resource")));
+const whitelistFile = process.argv[4];
 
-const targetSchema: Schema = JSON.parse(fs.readFileSync(process.argv[2]).toString()) as Schema;
+const whitelistContents = fs.readFileSync(whitelistFile).toString();
+const whitelist = new Set(
+    whitelistContents
+        .split("\n")
+        .map(s => s.trim())
+        .filter(a => a.length !== 0)
+        .map(s => toTitleCase(cleanse(s) + "Resource")));
+
+const targetSchema: Schema = JSON.parse(fs.readFileSync(inputFile).toString()) as Schema;
 
 const globalEmitContext = new EmitContext();
 
