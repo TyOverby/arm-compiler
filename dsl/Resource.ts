@@ -15,14 +15,11 @@ export interface Resource {
 }
 
 export class ResourceBase {
-    public name: string;
-    public location: string;
+    public readonly name: string;
+    public readonly location: string;
     constructor(name: string, location?: string) {
+        assert(/^[a-zA-z_][a-zA-Z0-9_]*$/.test(name), `Illegal name for resource "${name}"`);
         this.name = name;
         this.location = location || "US-West";
-    }
-
-    public validate(): void {
-        assert(/^[a-zA-z_][a-zA-Z0-9_]/.test(this.name), `Illegal name for resource "${this.name}"`);
     }
 }

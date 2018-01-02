@@ -1,4 +1,3 @@
-import { assert } from "../src/util";
 import { EmitProperties, Resource, ResourceBase, ResourceEmit } from "./Resource";
 
 export class WebSite extends ResourceBase implements Resource {
@@ -14,4 +13,6 @@ export class WebSite extends ResourceBase implements Resource {
             properties: {},
         }];
     }
+
+    public validate() { }
 }

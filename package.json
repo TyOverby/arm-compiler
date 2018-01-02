@@ -7,17 +7,21 @@
     "debug-compile": "ts-node --inspect-brk compiler/compiler.ts compiler/_template.json out/deploymentTemplate.d.ts",
     "compile": "ts-node compiler/compiler.ts compiler/_template.json out/deploymentTemplate.d.ts",
     "format": "tsfmt -r out/deploymentTemplate.d.ts",
-    "build": "ts-node templates/example.ts"
+    "build": "ts-node templates/example.ts",
+    "test": "mocha -r ts-node/register tests/**/*.ts"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "ts-node": "^4.0.2",
-    "typescript": "^2.6.2"
-  },
-  "dependencies": {
+    "@types/chai": "^4.0.10",
     "@types/json-schema": "^6.0.0",
+    "@types/mocha": "^2.2.45",
     "@types/node": "^8.5.2",
+    "chai": "^4.1.2",
+    "mocha": "^4.1.0",
+    "ts-node": "^4.0.2",
+    "tslint": "^5.8.0",
+    "typescript": "^2.6.2",
     "typescript-formatter": "^7.0.1"
   }
 }

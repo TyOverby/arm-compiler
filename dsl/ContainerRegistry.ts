@@ -29,4 +29,5 @@ export class ContainerRegistry extends ResourceBase implements Resource {
 
         return [registryResource];
     }
+    public validate() { }
 }

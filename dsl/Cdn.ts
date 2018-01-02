@@ -18,6 +18,7 @@ class CdnProfile extends ResourceBase implements Resource {
         return [cdnProfile];
     }
 
+    public validate() { }
 }
 
 class CdnProfileEndpoint extends ResourceBase implements Resource {
@@ -53,6 +54,8 @@ class CdnProfileEndpoint extends ResourceBase implements Resource {
 
         return [cdnProfileEndpoint];
     }
+
+    validate() { }
 }
 
 class CdnProfileEndpointOrigin extends ResourceBase implements Resource {
@@ -77,6 +80,8 @@ class CdnProfileEndpointOrigin extends ResourceBase implements Resource {
 
         return [endpointOrigin];
     }
+
+    validate() { }
 }
 
 export class Cdn extends ResourceBase implements Resource {
@@ -92,4 +97,6 @@ export class Cdn extends ResourceBase implements Resource {
     public emit(emitProperties: EmitProperties): ResourceEmit[] {
         return [];
     }
+
+    validate() { }
 }
