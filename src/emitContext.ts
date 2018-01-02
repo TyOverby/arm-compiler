@@ -88,8 +88,8 @@ export class EmitContext {
     public add(path: string, definition: string, schema: Schema): string {
         const name = this.defined.get(path) || this.calculateDotted(path, schema);
         const comment = schema.description ?
-            `/** ${schema.description}\n${path} */\n` :
-            `/** ${path} */\n`;
+            `/** ${schema.description}\ */\n` :
+            ``;
         this.root.add([name], `${comment}export type ${name} = ${definition};`);
 
         if (isResource(name)) {
