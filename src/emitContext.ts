@@ -1,9 +1,10 @@
 import { Schema } from "./compiler";
 import { assert, cleanse, isResource, toTitleCase, tryGetGoodName } from "./util";
 
+// TODO: the Module class supports submodules which are currently not used.
 class Module {
-    public submodules: Map<string, Module> = new Map();
-    public definitions: Map<string, string> = new Map();
+    private submodules: Map<string, Module> = new Map();
+    private definitions: Map<string, string> = new Map();
 
     public add(path: string[], definition: string) {
         if (path.length === 1) {
@@ -40,11 +41,14 @@ class Module {
 }
 
 export class EmitContext {
-    public root: Module = new Module();
-    public defined: Map<string, string> = new Map();
-    public goodNamesCounter: Map<string, number> = new Map();
-    public resourcesList: string[] = [];
+    private root: Module = new Module();
+    // A cache from path -> name
+    private defined: Map<string, string> = new Map();
+    private goodNamesCounter: Map<string, number> = new Map();
+    // A list of all the main "resources" names.
+    private resourcesList: string[] = [];
 
+    // Creates a unique name for a type with schema `schema` at `path`
     private calculateDotted(path: string, schema: Schema): string {
         const goodName = tryGetGoodName(path, schema) || "t";
         let counter;
@@ -62,11 +66,16 @@ export class EmitContext {
         return `${goodName}${counter === 0 ? "" : `${counter}`}`;
     }
 
+    // "Preregisters" a type with schema `schema` at `path`.
+    // Preregistration is done early in the compilation of a type and
+    // is intended to break cycles in the graph that would otherwise
+    // recurse forever.
     public preregister(path: string, schema: Schema) {
         const name = this.calculateDotted(path, schema);
         this.defined.set(path, name);
     }
 
+    // Returns the unique name of a path if it has been definied.
     public lookup(path: string): string | null {
         if (this.defined.has(path)) {
             return this.defined.get(path)!;
@@ -75,6 +84,7 @@ export class EmitContext {
         }
     }
 
+    // Adds a definition to emit.
     public add(path: string, definition: string, schema: Schema): string {
         const name = this.defined.get(path) || this.calculateDotted(path, schema);
         const comment = schema.description ?
@@ -88,6 +98,7 @@ export class EmitContext {
         return name;
     }
 
+    // Returns the entire compilation
     public emit(): string {
         const resourceMappings = this.resourcesList.map(r => `    export type ${r} = deployment_template.${r};`);
         return "export module deployment_template {\n" + this.root.emit() + "\n}\n" +

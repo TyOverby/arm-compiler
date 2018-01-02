@@ -2,7 +2,7 @@ import { fail } from "assert";
 import * as fs from "fs";
 import { JSONSchema4 } from "json-schema";
 import { EmitContext } from "./emitContext";
-import { assert, cleanse, clone, is_blacklisted, isResource, toTitleCase, tryGetGoodName } from "./util";
+import { assert, cleanse, clone, isResource, toTitleCase, tryGetGoodName } from "./util";
 
 export type Schema = Readonly<JSONSchema4>;
 
@@ -24,9 +24,10 @@ const globalEmitContext = new EmitContext();
 compileSchema("#", targetSchema, globalEmitContext, true);
 fs.writeFileSync(outputFile, globalEmitContext.emit());
 
+// Takes a path and finds the correlating schema in the targetSchema
 function lookupPath(path: string): Schema {
     const parts = path.split("/");
-    parts.shift(); // remove #
+    parts.shift(); // remove "#" symbol from the front
     let root: any = targetSchema;
     for (const part of parts) {
         root = root[part];
@@ -55,15 +56,9 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
             return "never";
         }
     }
+    // If it's good enough for a comment, it's good enough for a type!
     if (schema.description) {
         shouldDeclare = true;
-    }
-
-    //
-    // Blacklisted
-    //
-    if (is_blacklisted(path, schema)) {
-        return "any /*blacklisted*/";
     }
 
     //
@@ -73,7 +68,7 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
     if (primitiveAttempt) {
         return primitiveAttempt;
     }
-
+    // Abandon empty objects
     if (Object.keys(schema).length === 0) {
         return "any";
     }
@@ -224,6 +219,7 @@ function tryCompilePrimitive(schema: Schema): string | null {
         case "string": {
             if (schema.description && schema.description.startsWith("Deployment template expression.")) {
                 // We never use deployment template expressions, so instead of allowing practically every
+                // property to also be a string, we cut that all out.
                 return "never";
             } else {
                 return "string";
@@ -241,6 +237,10 @@ function tryCompilePrimitive(schema: Schema): string | null {
     return null;
 }
 
+// Some of the types in the schema are things like
+// * { description: "Type: string" }
+// * { description: "The default value is true" }
+// Why this is done, no one knows, but we can catch it and turn them into actual types.
 function descriptionHack(description: string): string | null {
     const explicitTypeRegex = /Type: (string|integer|number|boolean|object)/;
     const explicitResult = explicitTypeRegex.exec(description);

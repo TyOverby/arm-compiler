@@ -6,6 +6,7 @@ export function cleanse(s: string): string {
     return s.replace(/[^a-zA-Z0-9_$]/g, "");
 }
 
+// `foo/bar/baz` -> `Foo_Bar_Baz`
 export function toTitleCase(str: string): string {
     str = str.trim();
     const splitted = str.split("/");
@@ -20,13 +21,17 @@ export function assert(condition: boolean, message?: string, bonus?: any): void 
     }
 }
 
+// Returns true if the name is one that tryGetGoodName would return for a resource.
 export function isResource(name: string): boolean {
     return /Resource[0-9]*$/.test(name);
 }
 
+// Attempts to choose a good name for the type at `path` with schema `schema`.
+// The name doesn't need to be unique, and it doesn't *really* need to be good.
+// Decent heuristics are all that are necessary.
 export function tryGetGoodName(path: string, schema: Schema): string | null {
     const split = path.split("/");
-    split.shift();
+    split.shift(); // remove #
 
     //
     // #/../properties/type
@@ -72,10 +77,7 @@ export function tryGetGoodName(path: string, schema: Schema): string | null {
     return null;
 }
 
-export function is_blacklisted(path: string, schema: Schema): boolean {
-    return false;
-}
-
+// Copies a POD.
 export function clone<T>(a: T): T {
     return JSON.parse(JSON.stringify(a));
 }
