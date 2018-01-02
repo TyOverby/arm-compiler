@@ -1,5 +1,5 @@
+import { assert } from "../compiler/util";
 import { deployment_template } from "../out/deploymentTemplate";
-import { assert } from "../src/util";
 
 export type ResourceEmit = deployment_template.ResourcesValue;
 

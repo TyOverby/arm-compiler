@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "debug": "ts-node --inspect-brk src/compiler.ts resources/deploymentTemplate.json out/deploymentTemplate.d.ts ",
-    "compile": "ts-node src/compiler.ts resources/deploymentTemplate.json out/deploymentTemplate.d.ts "
+    "debug-compile": "ts-node --inspect-brk compiler/compiler.ts compiler/_template.json out/deploymentTemplate.d.ts ",
+    "compile": "ts-node compiler/compiler.ts compiler/_template.json out/deploymentTemplate.d.ts ",
+    "build": "ts-node templates/example.ts"
   },
   "author": "",
   "license": "ISC",
