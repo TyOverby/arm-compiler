@@ -4,8 +4,8 @@ import { deployment_template } from "../out/deploymentTemplate";
 export type ResourceEmit = deployment_template.ResourcesValue;
 
 export interface EmitProperties {
-    subscription_name: string;
-    resource_group_name: string;
+    readonly subscription_name: string;
+    readonly resource_group_name: string;
 }
 
 export interface Resource {

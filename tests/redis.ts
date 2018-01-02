@@ -4,7 +4,7 @@ import { Redis } from "../dsl/Redis";
 
 describe("the redis resource", () => {
     it("can be constructed", () => {
-        const redisCache = new Redis("site_name_here");
+        const redisCache = new Redis("redis_name_here");
     });
 
     it("bans spaces in the name", () => {
