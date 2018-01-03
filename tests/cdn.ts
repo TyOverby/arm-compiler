@@ -20,22 +20,31 @@ describe("the cdn resource", () => {
     });
 
     it("can have the location overridden", () => {
-        const cdnCache = new Cdn("cdn_name_here", "myhostname", "myoriginname", undefined, "US-East");
+        const cdnCache = new Cdn("cdn_name_here", "myhostname", "myoriginname", {
+            location: "East US",
+        });
+
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
         const emitted = cdnCache.emit(emitInfo);
-        expect(emitted[0].location).equals("US-East");
-        expect((emitted[0] as any).resources[0].location).equals("US-East");
+        expect(emitted[0].location).equals("East US");
+        expect((emitted[0] as any).resources[0].location).equals("East US");
     });
 
     it("can have the compression overridden", () => {
-        const cdnCache = new Cdn("cdn_name_here", "myhostname", "myoriginname", false);
+        const cdnCache = new Cdn("cdn_name_here", "myhostname", "myoriginname", {
+            isCompressionEnabled: false,
+        });
+
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
         const emitted = cdnCache.emit(emitInfo);
         expect((emitted[0] as any).resources[0].properties.isCompressionEnabled).equals(false);
     });
 
     it("can have the sku overridden", () => {
-        const cdnCache = new Cdn("cdn_name_here", "myhostname", "myoriginname", undefined, undefined, "Standard_Akamai");
+        const cdnCache = new Cdn("cdn_name_here", "myhostname", "myoriginname", {
+            sku: "Standard_Akamai",
+        });
+
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
         const emitted = cdnCache.emit(emitInfo);
         expect((emitted[0] as any).sku.name).equals("Standard_Akamai");
@@ -48,13 +57,13 @@ describe("the cdn resource", () => {
         expect(emitted).to.be.deep.equal([
             {
                 apiVersion: "2016-04-02",
-                location: "US-West",
+                location: "West US",
                 name: "cdn_name_here",
                 type: "Microsoft.Cdn/profiles",
                 resources: [
                     {
                         apiVersion: "2016-04-02",
-                        location: "US-West",
+                        location: "West US",
                         properties: {
                             isCompressionEnabled: true,
                             originHostHeader: "myhostname",

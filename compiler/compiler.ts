@@ -1,4 +1,5 @@
 import { fail } from "assert";
+import { execSync } from "child_process";
 import * as fs from "fs";
 import { JSONSchema4 } from "json-schema";
 import { EmitContext } from "./emitContext";
@@ -55,6 +56,19 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
         // By returning early here, you avoid emitting any dependencies.
         if (!whitelist.has(goodNameAttempt)) {
             return "never";
+        }
+        if (schema.description && /[a-zA-Z]+\.[a-zA-Z]+\/[a-zA-Z]+/.test(schema.description)) {
+            const [typ, name] = schema.description.split("/");
+            const query = `az provider show -n ${typ} --query "resourceTypes[?resourceType=='${name}'].locations"`;
+            const betterLocations = execSync(query);
+            const locationsArray: string[] = JSON.parse(betterLocations.toString())[0];
+            (schema as any).properties.location = {
+                description: `Locations available for ${schema.description}`,
+                anyOf: locationsArray.map(a => ({
+                    type: "string",
+                    enum: [a],
+                })),
+            };
         }
     }
     // If it's good enough for a comment, it's good enough for a type!

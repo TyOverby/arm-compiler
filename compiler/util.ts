@@ -37,7 +37,7 @@ export function tryGetGoodName(path: string, schema: Schema): string | null {
     // #/../properties/type
     //
     const type = schema.properties && schema.properties.type;
-    if (type && type) {
+    if (type) {
         if (type.enum && type.enum.length >= 1) {
             const before = type.enum[0] as string;
             const ret = cleanse(before as string);

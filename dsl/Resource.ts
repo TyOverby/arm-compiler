@@ -16,10 +16,8 @@ export interface Resource {
 
 export class ResourceBase {
     public readonly name: string;
-    public readonly location: string;
-    constructor(name: string, location?: string) {
+    constructor(name: string) {
         assert(/^[a-zA-z_][a-zA-Z0-9_]*$/.test(name), `Illegal name for resource "${name}"`);
         this.name = name;
-        this.location = location || "US-West";
     }
 }

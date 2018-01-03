@@ -27,7 +27,7 @@ describe("the registry resource", () => {
             {
                 apiVersion: "2017-10-01",
                 name: "registry_name",
-                location: "Central US",
+                location: "West US",
                 properties: {
                     adminUserEnabled: false,
                 },
@@ -40,14 +40,17 @@ describe("the registry resource", () => {
     });
 
     it("can have the sku changed manually", () => {
-        const registry = new ContainerRegistry("registry_name", "Premium");
+        const registry = new ContainerRegistry("registry_name", {
+            sku: "Premium",
+        });
+
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
         const emitted = registry.emit(emitInfo);
         expect(emitted).to.be.deep.equal([
             {
                 apiVersion: "2017-10-01",
                 name: "registry_name",
-                location: "Central US",
+                location: "West US",
                 properties: {
                     adminUserEnabled: false,
                 },

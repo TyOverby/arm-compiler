@@ -4,13 +4,23 @@ import { EmitProperties, Resource, ResourceBase, ResourceEmit } from "./Resource
 
 export type RegistrySku = "Classic" | "Basic" | "Standard" | "Premium";
 
+interface ContainerRegistryOptions {
+    location: deployment_template.Location10;
+    sku: RegistrySku;
+}
+
+const defaultOptions: ContainerRegistryOptions = {
+    location: "West US",
+    sku: "Standard",
+};
+
 export class ContainerRegistry extends ResourceBase implements Resource {
     public dependencies: Resource[] = [];
-    public sku: RegistrySku;
+    private options: ContainerRegistryOptions;
 
-    constructor(name: string, sku: RegistrySku = "Standard") {
-        super(name, "Central US");
-        this.sku = sku;
+    constructor(name: string, options?: Partial<ContainerRegistryOptions>) {
+        super(name);
+        this.options = { ...defaultOptions, ...options };
     }
 
     public emit(emitProperties: EmitProperties): ResourceEmit[] {
@@ -18,9 +28,9 @@ export class ContainerRegistry extends ResourceBase implements Resource {
             type: "Microsoft.ContainerRegistry/registries",
             apiVersion: "2017-10-01",
             name: this.name,
-            location: this.location,
+            location: this.options.location,
             sku: {
-                name: this.sku,
+                name: this.options.sku,
             },
             properties: {
                 adminUserEnabled: false,

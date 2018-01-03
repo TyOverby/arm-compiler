@@ -20,7 +20,9 @@ describe("the service bus resource", () => {
     });
 
     it("can override the sku", () => {
-        const redisCache = new ServiceBus("service_bus_name", undefined, "Premium");
+        const redisCache = new ServiceBus("service_bus_name", {
+            sku: "Premium",
+        });
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
         const emitted = redisCache.emit(emitInfo);
         expect((emitted[0] as any).sku.name).to.be.equal("Premium");
@@ -33,7 +35,7 @@ describe("the service bus resource", () => {
         expect(emitted).to.be.deep.equal([
             {
                 apiVersion: "2017-04-01",
-                location: "US-West",
+                location: "West US",
                 name: "service_bus_name",
                 properties: {
                     serviceBusEndpoint: "https://service_bus_name.servicebus.windows.net:443",

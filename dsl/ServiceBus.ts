@@ -3,13 +3,23 @@ import { EmitProperties, Resource, ResourceBase, ResourceEmit } from "./Resource
 
 export type ServiceBusSku = deployment_template.Name15;
 
+interface ServiceBusOptions {
+    location: deployment_template.Location11;
+    sku: ServiceBusSku;
+}
+
+const defaultOptions: ServiceBusOptions = {
+    location: "West US",
+    sku: "Standard",
+};
+
 export class ServiceBus extends ResourceBase implements Resource {
     public readonly dependencies: Resource[] = [];
-    private readonly sku: ServiceBusSku;
+    private options: ServiceBusOptions;
 
-    constructor(name: string, location?: string, sku?: ServiceBusSku) {
-        super(name, location);
-        this.sku = sku || "Standard";
+    constructor(name: string, options?: Partial<ServiceBusOptions>) {
+        super(name);
+        this.options = { ...defaultOptions, ...options };
     }
 
     public emit(emitProperties: EmitProperties): ResourceEmit[] {
@@ -17,9 +27,9 @@ export class ServiceBus extends ResourceBase implements Resource {
             name: this.name,
             type: "Microsoft.ServiceBus/namespaces",
             apiVersion: "2017-04-01",
-            location: this.location,
+            location: this.options.location,
             sku: {
-                name: this.sku,
+                name: this.options.sku,
             },
             properties: {
                 serviceBusEndpoint: `https://${this.name}.servicebus.windows.net:443`,

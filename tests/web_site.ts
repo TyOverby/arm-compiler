@@ -29,6 +29,7 @@ describe("the website resource", () => {
                 name: "site_name",
                 properties: {},
                 type: "Microsoft.Web/sites",
+                location: "West US",
             },
         ]);
     });
