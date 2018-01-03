@@ -2,3 +2,4 @@ Microsoft.Cache/Redis
 Microsoft.Web/sites
 Microsoft.ContainerRegistry/registries
 Microsoft.Cdn/profiles
+Microsoft.ServiceBus/namespaces
