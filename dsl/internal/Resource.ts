@@ -1,5 +1,5 @@
-import { assert } from "../compiler/util";
-import { deployment_template } from "../out/deploymentTemplate";
+import { assert } from "../../compiler/util";
+import { deployment_template } from "../../out/deploymentTemplate";
 
 export type ResourceEmit = deployment_template.ResourcesValue;
 
@@ -9,8 +9,8 @@ export interface EmitProperties {
 }
 
 export interface Resource {
-    validate(): void;
-    dependencies: Resource[];
+    readonly name: string;
+    readonly dependencies: Resource[];
     emit(emitProperties: EmitProperties): ResourceEmit[];
 }
 

@@ -1,6 +1,6 @@
 
 import { deployment_template, resources } from "../out/deploymentTemplate";
-import { EmitProperties, Resource, ResourceBase, ResourceEmit } from "./Resource";
+import { EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
 
 export type CdnSku = deployment_template.Name3;
 export interface CdnOptions {
