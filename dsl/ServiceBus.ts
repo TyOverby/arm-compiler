@@ -15,7 +15,7 @@ const defaultOptions: ServiceBusOptions = {
 
 export class ServiceBus extends ResourceBase implements Resource {
     public readonly dependencies: Resource[] = [];
-    private options: ServiceBusOptions;
+    private readonly options: Readonly<ServiceBusOptions>;
 
     constructor(name: string, options?: Partial<ServiceBusOptions>) {
         super(name);

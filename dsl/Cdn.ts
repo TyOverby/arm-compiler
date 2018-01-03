@@ -20,7 +20,7 @@ export class Cdn extends ResourceBase implements Resource {
     private readonly hostname: string;
     private readonly originname: string;
 
-    private readonly options: CdnOptions;
+    private readonly options: Readonly<CdnOptions>;
 
     constructor(name: string, hostname: string, originname: string, options?: Partial<CdnOptions>) {
         super(name);

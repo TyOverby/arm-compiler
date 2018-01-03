@@ -16,7 +16,7 @@ const defaultOptions: ContainerRegistryOptions = {
 
 export class ContainerRegistry extends ResourceBase implements Resource {
     public dependencies: Resource[] = [];
-    private options: ContainerRegistryOptions;
+    private readonly options: Readonly<ContainerRegistryOptions>;
 
     constructor(name: string, options?: Partial<ContainerRegistryOptions>) {
         super(name);
