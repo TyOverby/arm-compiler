@@ -1,5 +1,5 @@
 import { deployment_template, resources } from "../out/deploymentTemplate";
-import { EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
+import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
 
 export type ServiceBusSku = deployment_template.Name15;
 
@@ -13,17 +13,13 @@ const defaultOptions: ServiceBusOptions = {
     sku: "Standard",
 };
 
-export class ServiceBus extends ResourceBase implements Resource {
-    public readonly dependencies: Resource[] = [];
-    private readonly options: Readonly<ServiceBusOptions>;
-
+export class ServiceBus extends ResourceBase<ServiceBusOptions> implements Resource {
     constructor(name: string, options?: Partial<ServiceBusOptions>) {
-        super(name);
-        this.options = { ...defaultOptions, ...options };
+        super(name, defaultOptions, options);
     }
 
     public emit(emitProperties: EmitProperties): ResourceEmit[] {
-        const resource: resources.MicrosoftServiceBusnamespacesResource1 & ResourceBase = {
+        const resource: resources.MicrosoftServiceBusnamespacesResource1 & deployment_template.ResourceBase = {
             name: this.name,
             type: "Microsoft.ServiceBus/namespaces",
             apiVersion: "2017-04-01",
@@ -45,6 +41,4 @@ export class ServiceBus extends ResourceBase implements Resource {
 
         return [resource];
     }
-
-    public validate() { }
 }

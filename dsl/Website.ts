@@ -1,24 +1,19 @@
 import { deployment_template, resources } from "../out/deploymentTemplate";
 
-import { EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
+import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
 
-interface WebsiteOptions {
+type WebsiteOptions = AdditionalDependencies & {
     location: deployment_template.Location;
-}
+};
 
 const defaultOptions: WebsiteOptions = {
     location: "West US",
+    dependencies: [],
 };
 
-export class WebSite extends ResourceBase implements Resource {
-    private readonly options: Readonly<WebsiteOptions>;
+export class WebSite extends ResourceBase<WebsiteOptions> implements Resource {
     constructor(name: string, options?: Partial<WebsiteOptions>) {
-        super(name);
-        this.options = { ...defaultOptions, ...options };
-    }
-
-    get dependencies() {
-        return [];
+        super(name, defaultOptions, options);
     }
 
     public emit(emitProperties: EmitProperties): ResourceEmit[] {
@@ -32,6 +27,4 @@ export class WebSite extends ResourceBase implements Resource {
 
         return [resource];
     }
-
-    public validate() { }
 }

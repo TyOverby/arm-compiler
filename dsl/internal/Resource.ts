@@ -8,16 +8,30 @@ export interface EmitProperties {
     readonly resource_group_name: string;
 }
 
+export interface AdditionalDependencies {
+    dependencies: Resource[];
+}
+
 export interface Resource {
     readonly name: string;
     readonly dependencies: Resource[];
     emit(emitProperties: EmitProperties): ResourceEmit[];
 }
 
-export class ResourceBase {
+export class ResourceBase<O> {
     public readonly name: string;
-    constructor(name: string) {
+    public readonly options: Readonly<O & AdditionalDependencies>;
+    public get dependencies() {
+        return this.options.dependencies;
+    }
+
+    constructor(name: string, defaultOptions: O, providedOptions?: Partial<O & AdditionalDependencies>) {
         assert(/^[a-zA-z_][a-zA-Z0-9_]*$/.test(name), `Illegal name for resource "${name}"`);
         this.name = name;
+        this.options = {
+            dependencies: [],
+            ...defaultOptions as any,
+            ...providedOptions as any,
+        };
     }
 }

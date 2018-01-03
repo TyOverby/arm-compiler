@@ -1,10 +1,10 @@
 
 import { deployment_template, resources } from "../out/deploymentTemplate";
-import { EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
+import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
 
 export type RegistrySku = "Classic" | "Basic" | "Standard" | "Premium";
 
-interface ContainerRegistryOptions {
+export interface ContainerRegistryOptions {
     location: deployment_template.Location10;
     sku: RegistrySku;
 }
@@ -14,13 +14,9 @@ const defaultOptions: ContainerRegistryOptions = {
     sku: "Standard",
 };
 
-export class ContainerRegistry extends ResourceBase implements Resource {
-    public dependencies: Resource[] = [];
-    private readonly options: Readonly<ContainerRegistryOptions>;
-
+export class ContainerRegistry extends ResourceBase<ContainerRegistryOptions> implements Resource {
     constructor(name: string, options?: Partial<ContainerRegistryOptions>) {
-        super(name);
-        this.options = { ...defaultOptions, ...options };
+        super(name, defaultOptions, options);
     }
 
     public emit(emitProperties: EmitProperties): ResourceEmit[] {
@@ -39,5 +35,4 @@ export class ContainerRegistry extends ResourceBase implements Resource {
 
         return [registryResource];
     }
-    public validate() { }
 }

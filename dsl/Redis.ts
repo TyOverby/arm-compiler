@@ -1,8 +1,15 @@
 import { deployment_template, resources } from "../out/deploymentTemplate";
-import { EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
+import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
 
-export class Redis extends ResourceBase implements Resource {
-    public dependencies: Resource[] = [];
+// tslint:disable-next-line
+export interface RedisOptions { }
+
+const defaultOptions: RedisOptions = {};
+
+export class Redis extends ResourceBase<RedisOptions> implements Resource {
+    constructor(name: string, options?: RedisOptions) {
+        super(name, defaultOptions, options);
+    }
 
     public emit(emitProperties: EmitProperties): ResourceEmit[] {
         const redisResource: resources.MicrosoftCacheRedisResource2 & deployment_template.ResourceBase = {
@@ -21,6 +28,4 @@ export class Redis extends ResourceBase implements Resource {
 
         return [redisResource];
     }
-
-    public validate() { }
 }
