@@ -1,5 +1,6 @@
 import { fail } from "assert";
 import { execSync } from "child_process";
+import { bgBlue, bgYellow, black } from "colors/safe";
 import * as fs from "fs";
 import { JSONSchema4 } from "json-schema";
 import { EmitContext } from "./emitContext";
@@ -18,10 +19,9 @@ const whitelist = new Set(
         .map(s => s.trim())
         .filter(a => a.length !== 0)
         .map(s => toTitleCase(cleanse(s) + "Resource")));
-
 const targetSchema: Schema = JSON.parse(fs.readFileSync(inputFile).toString()) as Schema;
-
 const globalEmitContext = new EmitContext();
+const locationCache: Map<string, Schema> = new Map();
 
 compileSchema("#", targetSchema, globalEmitContext, true);
 fs.writeFileSync(outputFile, globalEmitContext.emit());
@@ -35,6 +35,30 @@ function lookupPath(path: string): Schema {
         root = root[part];
     }
     return root;
+}
+
+function lookupLocation(typ: string, name: string, schema: Schema): Schema {
+    const combined = `${typ}/${name}`;
+    if (locationCache.has(combined)) {
+        return locationCache.get(combined)!;
+    }
+
+    console.log(bgBlue(black(" INFO ")), `Querying azure for ${schema.description} locations`);
+
+    const query = `az provider show -n ${typ} --query "resourceTypes[?resourceType=='${name}'].locations"`;
+    const betterLocations = execSync(query);
+    const locationsArray: string[] = JSON.parse(betterLocations.toString())[0];
+    const ret: Schema = {
+        description: `Locations available for ${schema.description}`,
+        anyOf: locationsArray.map(a => ({
+            type: "string",
+            enum: [a],
+        } as Schema)),
+    };
+
+    locationCache.set(combined, ret);
+
+    return ret;
 }
 
 function compileSchema(path: string, schema: Schema, emitContext: EmitContext, shouldDeclare: boolean): string {
@@ -59,16 +83,7 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
         }
         if (schema.description && /[a-zA-Z]+\.[a-zA-Z]+\/[a-zA-Z]+/.test(schema.description)) {
             const [typ, name] = schema.description.split("/");
-            const query = `az provider show -n ${typ} --query "resourceTypes[?resourceType=='${name}'].locations"`;
-            const betterLocations = execSync(query);
-            const locationsArray: string[] = JSON.parse(betterLocations.toString())[0];
-            (schema as any).properties.location = {
-                description: `Locations available for ${schema.description}`,
-                anyOf: locationsArray.map(a => ({
-                    type: "string",
-                    enum: [a],
-                })),
-            };
+            (schema as any).properties.location = lookupLocation(typ, name, schema);
         }
     }
     // If it's good enough for a comment, it's good enough for a type!
@@ -195,7 +210,7 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
 
     if (fields.length === 0 && additionalName === undefined) {
         const p = path.split("/");
-        console.log(p.pop(), schema);
+        console.warn(black(bgYellow(" WARNING ")), "nothing to do for", p.pop(), schema);
     }
 
     if (shouldDeclare) {
@@ -221,7 +236,8 @@ function tryCompilePrimitive(schema: Schema): string | null {
     }
 
     /// Only has a description field
-    if (schema.description && Object.keys(schema).length === 1) {
+    if ((schema.description && Object.keys(schema).length === 1) ||
+        (schema.description && Object.keys(schema).length === 2 && schema.type)) {
         const descHack = descriptionHack(schema.description);
         if (descHack) { return descHack; }
     }
@@ -265,6 +281,19 @@ function descriptionHack(description: string): string | null {
 
     if (/The default value is (false|true)/.test(description)) {
         return tryCompilePrimitive({ type: "boolean" } as Schema);
+    }
+
+    if (description === "Name-value pairs to add to the resource") {
+        return "{[p: string]: any}";
+    }
+    if (description.indexOf("can be any valid JSON object") !== -1) {
+        return "any";
+    }
+    if (description === "Variable definitions") {
+        return "never";
+    }
+    if (description === "The properties of a replication.") {
+        return "never";
     }
 
     return null;
