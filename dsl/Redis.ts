@@ -12,7 +12,7 @@ export class Redis extends ResourceBase<RedisOptions> implements Resource {
     }
 
     public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit {
-        const redisResource: resources.MicrosoftCacheRedisResource2 & deployment_template.ResourceBase = {
+        const redisResource: resources.MicrosoftCacheRedisResource2 = {
             type: "Microsoft.Cache/Redis",
             name: this.name,
             apiVersion: "2016-04-01",

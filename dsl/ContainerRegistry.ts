@@ -20,7 +20,7 @@ export class ContainerRegistry extends ResourceBase<ContainerRegistryOptions> im
     }
 
     public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit {
-        const registryResource: resources.MicrosoftContainerRegistryregistriesResource3 & deployment_template.ResourceBase = {
+        const registryResource: resources.MicrosoftContainerRegistryregistriesResource3 = {
             type: "Microsoft.ContainerRegistry/registries",
             apiVersion: "2017-10-01",
             name: this.name,

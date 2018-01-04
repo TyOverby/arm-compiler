@@ -26,7 +26,7 @@ export class Cdn extends ResourceBase<CdnOptions> implements Resource {
     }
 
     public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit {
-        const cdnResource: resources.MicrosoftCdnprofilesResource1 & deployment_template.ResourceBase = {
+        const cdnResource: resources.MicrosoftCdnprofilesResource1 = {
             name: this.name,
             type: "Microsoft.Cdn/profiles",
             apiVersion: "2016-04-02",

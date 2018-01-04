@@ -100,7 +100,7 @@ export class EmitContext {
 
     // Returns the entire compilation
     public emit(): string {
-        const resourceMappings = this.resourcesList.map(r => `    export type ${r} = deployment_template.${r};`);
+        const resourceMappings = this.resourcesList.map(r => `    export type ${r} = deployment_template.${r} & deployment_template.ResourceBase;`);
         return "export module deployment_template {\n" + this.root.emit() + "\n}\n" +
             `export module resources {\n${resourceMappings.join("\n")}\n}`;
     }

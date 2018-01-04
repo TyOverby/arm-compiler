@@ -19,7 +19,7 @@ export class ServiceBus extends ResourceBase<ServiceBusOptions> implements Resou
     }
 
     public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit {
-        const resource: resources.MicrosoftServiceBusnamespacesResource1 & deployment_template.ResourceBase = {
+        const resource: resources.MicrosoftServiceBusnamespacesResource1 = {
             name: this.name,
             type: "Microsoft.ServiceBus/namespaces",
             apiVersion: "2017-04-01",

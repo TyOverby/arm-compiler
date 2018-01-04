@@ -17,7 +17,7 @@ export class WebSite extends ResourceBase<WebsiteOptions> implements Resource {
     }
 
     public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit {
-        const resource: resources.MicrosoftWebsitesResource & deployment_template.ResourceBase = {
+        const resource: resources.MicrosoftWebsitesResource = {
             type: "Microsoft.Web/sites",
             apiVersion: "2016-08-01",
             name: this.name,
