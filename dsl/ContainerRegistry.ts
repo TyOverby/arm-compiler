@@ -19,7 +19,7 @@ export class ContainerRegistry extends ResourceBase<ContainerRegistryOptions> im
         super(name, defaultOptions, options);
     }
 
-    public emit(emitProperties: EmitProperties): ResourceEmit[] {
+    public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit {
         const registryResource: resources.MicrosoftContainerRegistryregistriesResource3 & deployment_template.ResourceBase = {
             type: "Microsoft.ContainerRegistry/registries",
             apiVersion: "2017-10-01",
@@ -33,6 +33,6 @@ export class ContainerRegistry extends ResourceBase<ContainerRegistryOptions> im
             },
         };
 
-        return [registryResource];
+        return registryResource;
     }
 }

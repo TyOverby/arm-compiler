@@ -23,20 +23,18 @@ describe("the redis resource", () => {
         const redisCache = new Redis("redis_name");
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
         const emitted = redisCache.emit(emitInfo);
-        expect(emitted).to.be.deep.equal([
-            {
-                apiVersion: "2016-04-01",
-                name: "redis_name",
-                properties: {
-                    enableNonSslPort: false,
-                    sku: {
-                        capacity: 1,
-                        family: "C",
-                        name: "Standard",
-                    },
+        expect(emitted).to.be.deep.equal({
+            apiVersion: "2016-04-01",
+            name: "redis_name",
+            properties: {
+                enableNonSslPort: false,
+                sku: {
+                    capacity: 1,
+                    family: "C",
+                    name: "Standard",
                 },
-                type: "Microsoft.Cache/Redis",
             },
-        ]);
+            type: "Microsoft.Cache/Redis",
+        });
     });
 });

@@ -18,7 +18,7 @@ export class ServiceBus extends ResourceBase<ServiceBusOptions> implements Resou
         super(name, defaultOptions, options);
     }
 
-    public emit(emitProperties: EmitProperties): ResourceEmit[] {
+    public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit {
         const resource: resources.MicrosoftServiceBusnamespacesResource1 & deployment_template.ResourceBase = {
             name: this.name,
             type: "Microsoft.ServiceBus/namespaces",
@@ -39,6 +39,6 @@ export class ServiceBus extends ResourceBase<ServiceBusOptions> implements Resou
             }],
         };
 
-        return [resource];
+        return resource;
     }
 }

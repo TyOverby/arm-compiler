@@ -25,38 +25,36 @@ describe("the service bus resource", () => {
         });
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
         const emitted = redisCache.emit(emitInfo);
-        expect((emitted[0] as any).sku.name).to.be.equal("Premium");
+        expect((emitted as any).sku.name).to.be.equal("Premium");
     });
 
     it("produces a reasonable output when emitted directly", () => {
         const redisCache = new ServiceBus("service_bus_name");
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
         const emitted = redisCache.emit(emitInfo);
-        expect(emitted).to.be.deep.equal([
-            {
-                apiVersion: "2017-04-01",
-                location: "West US",
-                name: "service_bus_name",
-                properties: {
-                    serviceBusEndpoint: "https://service_bus_name.servicebus.windows.net:443",
-                },
-                resources: [
-                    {
-                        apiVersion: "2017-04-01",
-                        properties: {
-                            rights: [
-                                "Send",
-                                "Listen",
-                            ],
-                        },
-                        type: "AuthorizationRules",
-                    },
-                ],
-                sku: {
-                    name: "Standard",
-                },
-                type: "Microsoft.ServiceBus/namespaces",
+        expect(emitted).to.be.deep.equal({
+            apiVersion: "2017-04-01",
+            location: "West US",
+            name: "service_bus_name",
+            properties: {
+                serviceBusEndpoint: "https://service_bus_name.servicebus.windows.net:443",
             },
-        ]);
+            resources: [
+                {
+                    apiVersion: "2017-04-01",
+                    properties: {
+                        rights: [
+                            "Send",
+                            "Listen",
+                        ],
+                    },
+                    type: "AuthorizationRules",
+                },
+            ],
+            sku: {
+                name: "Standard",
+            },
+            type: "Microsoft.ServiceBus/namespaces",
+        });
     });
 });

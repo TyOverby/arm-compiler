@@ -26,8 +26,8 @@ describe("the cdn resource", () => {
 
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
         const emitted = cdnCache.emit(emitInfo);
-        expect(emitted[0].location).equals("East US");
-        expect((emitted[0] as any).resources[0].location).equals("East US");
+        expect(emitted.location).equals("East US");
+        expect((emitted as any).resources[0].location).equals("East US");
     });
 
     it("can have the compression overridden", () => {
@@ -37,7 +37,7 @@ describe("the cdn resource", () => {
 
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
         const emitted = cdnCache.emit(emitInfo);
-        expect((emitted[0] as any).resources[0].properties.isCompressionEnabled).equals(false);
+        expect((emitted as any).resources[0].properties.isCompressionEnabled).equals(false);
     });
 
     it("can have the sku overridden", () => {
@@ -47,42 +47,40 @@ describe("the cdn resource", () => {
 
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
         const emitted = cdnCache.emit(emitInfo);
-        expect((emitted[0] as any).sku.name).equals("Standard_Akamai");
+        expect((emitted as any).sku.name).equals("Standard_Akamai");
     });
 
     it("produces a reasonable output when emitted directly", () => {
         const cdnCache = new Cdn("cdn_name_here", "myhostname", "myoriginname");
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
         const emitted = cdnCache.emit(emitInfo);
-        expect(emitted).to.be.deep.equal([
-            {
-                apiVersion: "2016-04-02",
-                location: "West US",
-                name: "cdn_name_here",
-                type: "Microsoft.Cdn/profiles",
-                resources: [
-                    {
-                        apiVersion: "2016-04-02",
-                        location: "West US",
-                        properties: {
-                            isCompressionEnabled: true,
-                            originHostHeader: "myhostname",
-                            origins: [
-                                {
-                                    name: "myoriginname",
-                                    properties: {
-                                        hostName: "myhostname",
-                                    },
+        expect(emitted).to.be.deep.equal({
+            apiVersion: "2016-04-02",
+            location: "West US",
+            name: "cdn_name_here",
+            type: "Microsoft.Cdn/profiles",
+            resources: [
+                {
+                    apiVersion: "2016-04-02",
+                    location: "West US",
+                    properties: {
+                        isCompressionEnabled: true,
+                        originHostHeader: "myhostname",
+                        origins: [
+                            {
+                                name: "myoriginname",
+                                properties: {
+                                    hostName: "myhostname",
                                 },
-                            ],
-                        },
-                        type: "endpoints",
+                            },
+                        ],
                     },
-                ],
-                sku: {
-                    name: "Standard_Verizon",
+                    type: "endpoints",
                 },
+            ],
+            sku: {
+                name: "Standard_Verizon",
             },
-        ]);
+        });
     });
 });

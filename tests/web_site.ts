@@ -23,14 +23,12 @@ describe("the website resource", () => {
         const website = new WebSite("site_name");
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
         const emitted = website.emit(emitInfo);
-        expect(emitted).to.be.deep.equal([
-            {
-                apiVersion: "2016-08-01",
-                name: "site_name",
-                properties: {},
-                type: "Microsoft.Web/sites",
-                location: "West US",
-            },
-        ]);
+        expect(emitted).to.be.deep.equal({
+            apiVersion: "2016-08-01",
+            name: "site_name",
+            properties: {},
+            type: "Microsoft.Web/sites",
+            location: "West US",
+        });
     });
 });
