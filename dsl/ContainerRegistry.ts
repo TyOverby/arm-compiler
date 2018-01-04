@@ -1,5 +1,5 @@
 
-import { deployment_template, resources } from "../out/deploymentTemplate";
+import { deployment_template, resources } from "../dist/deploymentTemplate";
 import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
 
 export type RegistrySku = "Classic" | "Basic" | "Standard" | "Premium";

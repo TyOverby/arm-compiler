@@ -1,9 +1,9 @@
-import { deployment_template, resources } from "../out/deploymentTemplate";
+import { deployment_template, resources } from "../dist/deploymentTemplate";
 import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
 
 export type ServiceBusSku = deployment_template.Name15;
 
-interface ServiceBusOptions {
+export interface ServiceBusOptions {
     location: deployment_template.Location11;
     sku: ServiceBusSku;
 }

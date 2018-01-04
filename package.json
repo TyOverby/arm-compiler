@@ -1,17 +1,19 @@
 {
-  "name": "json-2-tsc",
-  "version": "1.0.0",
+  "name": "arm-compiler",
+  "version": "1.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "debug-compile": "ts-node --inspect-brk compiler/compiler.ts compiler/_template.json out/deploymentTemplate.d.ts whitelist.txt",
-    "compile": "ts-node compiler/compiler.ts compiler/_template.json out/deploymentTemplate.d.ts whitelist.txt",
-    "format": "tsfmt -r out/deploymentTemplate.d.ts",
-    "build": "ts-node templates/example.ts",
+    "prepublish": "mkdir -p dist && npm run compile && npm run copy-files && npm run format && tsc",
+    "compile": "ts-node compiler/compiler.ts compiler/_template.json dist/deploymentTemplate.d.ts whitelist.txt",
+    "copy-files": "mkdir -p dist/dist/ && cp dist/deploymentTemplate.d.ts dist/dist/",
+    "format": "tsfmt -r dist/deploymentTemplate.d.ts",
+    "build": "npm run postinstall",
     "test": "mocha -r ts-node/register tests/**/*.ts"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@types/chai": "^4.0.10",
     "@types/colors": "^1.1.3",
