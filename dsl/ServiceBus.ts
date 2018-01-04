@@ -42,3 +42,21 @@ export class ServiceBus extends ResourceBase<ServiceBusOptions> implements Resou
         return resource;
     }
 }
+
+export class ServiceBusQueue extends ResourceBase<{}> {
+    private readonly serviceBus: ServiceBus;
+    constructor(name: string, serviceBus: ServiceBus) {
+        super(name, {}, { dependencies: [serviceBus] });
+        this.serviceBus = serviceBus;
+    }
+    public emit() {
+        const resource: resources.MicrosoftServiceBusnamespacesqueuesResource1 = {
+            type: "Microsoft.ServiceBus/namespaces/queues",
+            apiVersion: "2017-04-01",
+            name: this.name,
+            properties: {},
+            location: this.serviceBus.options.location,
+        };
+        return resource;
+    }
+}

@@ -79,6 +79,7 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
         // Don't include any resource groups that arent in the whitelist.
         // By returning early here, you avoid emitting any dependencies.
         if (!whitelist.has(goodNameAttempt)) {
+            console.warn(black(bgYellow(" WARNING ")), `skipping ${goodNameAttempt}`);
             return "never";
         }
         if (schema.description && /[a-zA-Z]+\.[a-zA-Z]+\/[a-zA-Z]+/.test(schema.description)) {
