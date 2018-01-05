@@ -22,6 +22,9 @@ function verify_no_duplicate_names(resources: Resource[]) {
         registerResource(res);
     }
 }
+export function formatId(subName: string, rgName: string, type: string, name: string): string {
+    return `/subscriptions/${subName}/resourceGroups/${rgName}/providers/${type}/${name}`;
+}
 
 function flatten(subName: string, rgName: string, resources: Resource[]): deployment_template.ResourcesValue[] {
     const out: deployment_template.ResourcesValue[] = [];
@@ -39,7 +42,7 @@ function flatten(subName: string, rgName: string, resources: Resource[]): deploy
 
         for (const dep of resource.dependencies) {
             const depValue = flattenIndiv(dep);
-            const dependencyName = `/subscriptions/${subName}/resourceGroups/${rgName}/providers/${depValue.type}/${depValue.name}`;
+            const dependencyName = formatId(subName, rgName, depValue.type, depValue.name);
             emitValue.dependsOn.push(dependencyName);
         }
         out.push(emitValue);

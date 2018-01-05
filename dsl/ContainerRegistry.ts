@@ -1,4 +1,5 @@
 
+import { assert } from "../compiler/util";
 import { deployment_template, resources } from "../dist/deploymentTemplate";
 import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
 
@@ -16,6 +17,7 @@ const defaultOptions: ContainerRegistryOptions = {
 
 export class ContainerRegistry extends ResourceBase<ContainerRegistryOptions> implements Resource {
     constructor(name: string, options?: Partial<ContainerRegistryOptions>) {
+        assert(!/_/.test(name), `${name}: container registries can't have underscores in the name`);
         super(name, defaultOptions, options);
     }
 

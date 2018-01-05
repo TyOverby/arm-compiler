@@ -31,7 +31,19 @@ describe("compilation", () => {
                 apiVersion: "2016-08-01",
                 location: "West US",
                 dependsOn: [],
-                properties: {},
+                properties: {
+                    serverFarmId: undefined,
+                },
+                resources: [
+                    {
+                        name: "appsettings",
+                        apiVersion: "2016-08-01",
+                        type: "config",
+                        properties: {
+                            linuxFxVersion: undefined,
+                        },
+                    },
+                ],
             }],
         });
     });

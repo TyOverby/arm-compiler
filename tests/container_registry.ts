@@ -4,12 +4,18 @@ import { ContainerRegistry } from "../dsl/ContainerRegistry";
 
 describe("the registry resource", () => {
     it("can be constructed", () => {
-        const registry = new ContainerRegistry("registry_name_here");
+        const registry = new ContainerRegistry("registrynamehere");
     });
 
     it("bans spaces in the name", () => {
         expect(() => {
             const registry = new ContainerRegistry("spaces are present");
+        }).to.throw();
+    });
+
+    it("bans underscores in the name", () => {
+        expect(() => {
+            const registry = new ContainerRegistry("underscores_are_present");
         }).to.throw();
     });
 
@@ -20,12 +26,12 @@ describe("the registry resource", () => {
     });
 
     it("produces a reasonable output when emitted directly", () => {
-        const registry = new ContainerRegistry("registry_name");
+        const registry = new ContainerRegistry("registryname");
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
         const emitted = registry.emit(emitInfo);
         expect(emitted).to.be.deep.equal({
             apiVersion: "2017-10-01",
-            name: "registry_name",
+            name: "registryname",
             location: "West US",
             properties: {
                 adminUserEnabled: false,
@@ -38,7 +44,7 @@ describe("the registry resource", () => {
     });
 
     it("can have the sku changed manually", () => {
-        const registry = new ContainerRegistry("registry_name", {
+        const registry = new ContainerRegistry("registryname", {
             sku: "Premium",
         });
 
@@ -46,7 +52,7 @@ describe("the registry resource", () => {
         const emitted = registry.emit(emitInfo);
         expect(emitted).to.be.deep.equal({
             apiVersion: "2017-10-01",
-            name: "registry_name",
+            name: "registryname",
             location: "West US",
             properties: {
                 adminUserEnabled: false,

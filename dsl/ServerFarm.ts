@@ -12,14 +12,15 @@ const defaultOptions: ServerFarmOptions = {
 };
 
 export class ServerFarm extends ResourceBase<ServerFarmOptions> implements Resource {
+    public readonly type = "Microsoft.Web/serverfarms";
     constructor(name: string, options?: Partial<ServerFarmOptions>) {
         super(name, defaultOptions, options);
     }
 
     public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit {
-        return {
-            type: "Microsoft.Web/serverfarms",
-            apiVersion: "2015-08-01",
+        const ret: resources.MicrosoftWebserverfarmsResource2 = {
+            type: this.type,
+            apiVersion: "2016-09-01",
             name: this.name,
             properties: {
                 name: this.name,
@@ -27,5 +28,6 @@ export class ServerFarm extends ResourceBase<ServerFarmOptions> implements Resou
             },
             location: this.options.location,
         };
+        return ret;
     }
 }
