@@ -1,8 +1,8 @@
-import { deployment_template, resources } from "../out/deploymentTemplate";
+import { deployment_template, resources } from "../dist/deploymentTemplate";
 
 import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
 
-type WebsiteOptions = AdditionalDependencies & {
+export type WebsiteOptions = AdditionalDependencies & {
     location: deployment_template.Location;
 };
 

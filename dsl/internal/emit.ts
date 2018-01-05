@@ -1,5 +1,5 @@
 import { assert } from "../../compiler/util";
-import { deployment_template } from "../../out/deploymentTemplate";
+import { deployment_template } from "../../dist/deploymentTemplate";
 import { Resource } from "./Resource";
 
 type ResourcesValue = deployment_template.ResourcesValue;
