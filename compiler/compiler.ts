@@ -46,15 +46,21 @@ function lookupLocation(typ: string, name: string, schema: Schema): Schema {
     console.log(bgBlue(black(" INFO ")), `Querying azure for ${schema.description} locations`);
 
     const query = `az provider show -n ${typ} --query "resourceTypes[?resourceType=='${name}'].locations"`;
-    const betterLocations = execSync(query);
-    const locationsArray: string[] = JSON.parse(betterLocations.toString())[0];
-    const ret: Schema = {
-        description: `Locations available for ${schema.description}`,
-        anyOf: locationsArray.map(a => ({
+    const betterLocations: string[][] = JSON.parse(execSync(query).toString());
+    let ret: Schema;
+    if (betterLocations.length === 0) {
+        ret = {
             type: "string",
-            enum: [a],
-        } as Schema)),
-    };
+        };
+    } else {
+        ret = {
+            description: `Locations available for ${schema.description}`,
+            anyOf: betterLocations[0].map(a => ({
+                type: "string",
+                enum: [a],
+            } as Schema)),
+        };
+    }
 
     locationCache.set(combined, ret);
 

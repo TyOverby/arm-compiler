@@ -1,7 +1,7 @@
 import { deployment_template, resources } from "../dist/deploymentTemplate";
 import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
 
-export type ServiceBusSku = deployment_template.Name15;
+export type ServiceBusSku = "Basic" | "Standard" | "Premium";
 
 export interface ServiceBusOptions {
     location: deployment_template.Location11;

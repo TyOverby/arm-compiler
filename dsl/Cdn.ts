@@ -2,7 +2,7 @@
 import { deployment_template, resources } from "../dist/deploymentTemplate";
 import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
 
-export type CdnSku = deployment_template.Name3;
+export type CdnSku = "Standard_Verizon" | "Premium_Verizon" | "Custom_Verizon" | "Standard_Akamai";
 export interface CdnOptions {
     isCompressionEnabled: boolean;
     location: deployment_template.Location4;

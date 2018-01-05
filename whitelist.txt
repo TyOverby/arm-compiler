@@ -3,3 +3,4 @@ Microsoft.Web/sites
 Microsoft.ContainerRegistry/registries
 Microsoft.Cdn/profiles
 Microsoft.ServiceBus/namespaces
+Microsoft.Web/serverfarms

@@ -9,7 +9,7 @@
     "compile": "ts-node compiler/compiler.ts compiler/_template.json dist/deploymentTemplate.d.ts whitelist.txt",
     "copy-files": "mkdir -p dist/dist/ && cp dist/deploymentTemplate.d.ts dist/dist/",
     "format": "tsfmt -r dist/deploymentTemplate.d.ts",
-    "build": "npm run postinstall",
+    "build": "npm run prepublish",
     "test": "mocha -r ts-node/register tests/**/*.ts"
   },
   "author": "",
