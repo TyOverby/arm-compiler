@@ -21,6 +21,29 @@ const defaultOptions: WebsiteOptions = {
     dependencies: [],
 };
 
+interface WebsiteConfigOptions {
+    linuxFxVersion: string;
+}
+
+class WebsiteConfig extends ResourceBase<WebsiteConfigOptions> implements Resource {
+    constructor(name: string, options: WebsiteConfigOptions) {
+        super(name, options, options);
+    }
+
+    public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit {
+        const out: resources.MicrosoftWebsitesconfigResource1 = {
+            name: "appsettings",
+            type: "Microsoft.Web/sites/config",
+            apiVersion: "2016-08-01",
+            properties: {
+                linuxFxVersion: this.options.linuxFxVersion,
+            },
+        };
+
+        return out;
+    }
+}
+
 export class WebSite extends ResourceBase<WebsiteOptions> implements Resource {
     private readonly containerRegistryName: string | null;
 
@@ -66,16 +89,6 @@ export class WebSite extends ResourceBase<WebsiteOptions> implements Resource {
             properties: {
                 serverFarmId,
             },
-            resources: [
-                {
-                    name: "appsettings",
-                    type: "config",
-                    apiVersion: "2016-08-01",
-                    properties: {
-                        linuxFxVersion,
-                    },
-                } as deployment_template.Config1,
-            ],
         };
 
         return resource;

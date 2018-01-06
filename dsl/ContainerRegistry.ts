@@ -6,7 +6,7 @@ import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, Resourc
 export type RegistrySku = "Classic" | "Basic" | "Standard" | "Premium";
 
 export interface ContainerRegistryOptions {
-    location: deployment_template.Location10;
+    location: deployment_template.ContainerRegistry_RegistriesLocation3;
     sku: RegistrySku;
 }
 
@@ -21,8 +21,8 @@ export class ContainerRegistry extends ResourceBase<ContainerRegistryOptions> im
         super(name, defaultOptions, options);
     }
 
-    public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit {
-        const registryResource: resources.MicrosoftContainerRegistryregistriesResource3 = {
+    public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit[] {
+        const registryResource: resources.MicrosoftContainerRegistry_RegistriesResource3 = {
             type: "Microsoft.ContainerRegistry/registries",
             apiVersion: "2017-10-01",
             name: this.name,
@@ -35,6 +35,6 @@ export class ContainerRegistry extends ResourceBase<ContainerRegistryOptions> im
             },
         };
 
-        return registryResource;
+        return [registryResource];
     }
 }

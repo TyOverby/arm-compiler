@@ -11,8 +11,8 @@ export class Redis extends ResourceBase<RedisOptions> implements Resource {
         super(name, defaultOptions, options);
     }
 
-    public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit {
-        const redisResource: resources.MicrosoftCacheRedisResource2 = {
+    public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit[] {
+        const redisResource: resources.MicrosoftCache_RedisResource2 = {
             type: "Microsoft.Cache/Redis",
             name: this.name,
             apiVersion: "2016-04-01",
@@ -26,6 +26,6 @@ export class Redis extends ResourceBase<RedisOptions> implements Resource {
             },
         };
 
-        return redisResource;
+        return [redisResource];
     }
 }

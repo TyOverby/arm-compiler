@@ -23,7 +23,7 @@ const targetSchema: Schema = JSON.parse(fs.readFileSync(inputFile).toString()) a
 const globalEmitContext = new EmitContext();
 const locationCache: Map<string, Schema> = new Map();
 
-compileSchema("#", targetSchema, globalEmitContext, true);
+compileSchema("#", targetSchema, globalEmitContext, true, null);
 fs.writeFileSync(outputFile, globalEmitContext.emit());
 
 // Takes a path and finds the correlating schema in the targetSchema
@@ -67,7 +67,7 @@ function lookupLocation(typ: string, name: string, schema: Schema): Schema {
     return ret;
 }
 
-function compileSchema(path: string, schema: Schema, emitContext: EmitContext, shouldDeclare: boolean): string {
+function compileSchema(path: string, schema: Schema, emitContext: EmitContext, shouldDeclare: boolean, insideResource: string | null): string {
     const alreadyCompiled = emitContext.lookup(path);
     if (alreadyCompiled) {
         return alreadyCompiled;
@@ -78,8 +78,9 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
     //
 
     // Back out if you are a resource
-    const goodNameAttempt = tryGetGoodName(path, schema);
+    const goodNameAttempt = tryGetGoodName(path, schema, insideResource);
     if (goodNameAttempt && isResource(goodNameAttempt)) {
+        insideResource = goodNameAttempt.replace("Resource", "").replace("Microsoft", "");
         shouldDeclare = true;
 
         // Don't include any resource groups that arent in the whitelist.
@@ -114,14 +115,14 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
     // Pre-register (done to prevent infinite cycles)
     //
     if (shouldDeclare) {
-        emitContext.preregister(path, schema);
+        emitContext.preregister(path, schema, insideResource);
     }
 
     //
     // Refs
     //
     if (schema.$ref) {
-        return compileSchema(schema.$ref, lookupPath(schema.$ref), emitContext, true);
+        return compileSchema(schema.$ref, lookupPath(schema.$ref), emitContext, true, insideResource);
     }
 
     //
@@ -133,9 +134,9 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
         assert(
             !Array.isArray(schema.items),
             "did not expect array item to be an array.");
-        const shouldDeclareArray = tryGetGoodName(path, schema) === "Resources";
-        const contents = compileSchema(path + "Value", schema.items as Schema, emitContext, shouldDeclareArray);
-        return emitContext.add(path, `(${contents})[]`, schema);
+        const shouldDeclareArray = tryGetGoodName(path, schema, insideResource) === "Resources";
+        const contents = compileSchema(path + "Value", schema.items as Schema, emitContext, shouldDeclareArray, insideResource);
+        return emitContext.add(path, `(${contents})[]`, schema, insideResource);
     }
 
     //
@@ -146,12 +147,12 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
             if (merger !== null) {
                 s = Object.assign(Object.assign({}, merger), s);
             }
-            return compileSchema(path + `/${appender}${i}`, s, emitContext, false);
+            return compileSchema(path + `/${appender}${i}`, s, emitContext, false, insideResource);
         }).join(op);
         ret = `(${ret})`;
 
         if (shouldDeclare || schemas.length > 4) {
-            return emitContext.add(path, ret, schema);
+            return emitContext.add(path, ret, schema, insideResource);
         } else {
             return ret;
         }
@@ -185,7 +186,7 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
         fields = properties.map((p) => {
             const propName = /^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test(p) ? p : `"${p}"`;
             const req = requiredFields.has(p) ? "" : "?";
-            return `${propName}${req}: ${compileSchema(`${path}/${p}`, sProperties[p], emitContext, false)}`;
+            return `${propName}${req}: ${compileSchema(`${path}/${p}`, sProperties[p], emitContext, false, insideResource)}`;
         });
     }
 
@@ -201,7 +202,8 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
                 `${path}/additionalProperties/`,
                 schema.additionalProperties,
                 emitContext,
-                false);
+                false,
+                insideResource);
             fields.push(`[p: string]: ${additionalName}`);
         }
     }
@@ -224,7 +226,8 @@ function compileSchema(path: string, schema: Schema, emitContext: EmitContext, s
         return emitContext.add(
             path,
             type.trim(),
-            schema);
+            schema,
+            insideResource);
     } else {
         return type.trim();
     }

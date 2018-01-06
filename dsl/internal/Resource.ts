@@ -15,7 +15,7 @@ export interface AdditionalDependencies {
 export interface Resource {
     readonly name: string;
     readonly dependencies: Resource[];
-    emit(emitProperties: Readonly<EmitProperties>): ResourceEmit;
+    emit(emitProperties: Readonly<EmitProperties>): ResourceEmit[];
 }
 
 export class ResourceBase<O> {

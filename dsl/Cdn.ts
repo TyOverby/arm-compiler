@@ -5,7 +5,7 @@ import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, Resourc
 export type CdnSku = "Standard_Verizon" | "Premium_Verizon" | "Custom_Verizon" | "Standard_Akamai";
 export interface CdnOptions {
     isCompressionEnabled: boolean;
-    location: deployment_template.Location4;
+    location: deployment_template.Cdn_ProfilesLocation1;
     sku: CdnSku;
 }
 
@@ -25,8 +25,8 @@ export class Cdn extends ResourceBase<CdnOptions> implements Resource {
         this.originname = originname;
     }
 
-    public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit {
-        const cdnResource: resources.MicrosoftCdnprofilesResource1 = {
+    public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit[] {
+        const cdnResource: resources.MicrosoftCdn_ProfilesResource1 = {
             name: this.name,
             type: "Microsoft.Cdn/profiles",
             apiVersion: "2016-04-02",
@@ -36,6 +36,7 @@ export class Cdn extends ResourceBase<CdnOptions> implements Resource {
             },
             resources: [{
                 type: "endpoints",
+                name: `${this.name}_endpoint`,
                 apiVersion: "2016-04-02",
                 location: this.options.location,
                 properties: {
@@ -48,9 +49,9 @@ export class Cdn extends ResourceBase<CdnOptions> implements Resource {
                         },
                     }],
                 },
-            }],
+            } as any],
         };
 
-        return cdnResource;
+        return [cdnResource];
     }
 }

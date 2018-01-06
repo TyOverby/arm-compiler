@@ -5,3 +5,5 @@ Microsoft.Cdn/profiles
 Microsoft.ServiceBus/namespaces
 Microsoft.ServiceBus/namespaces/queues
 Microsoft.Web/serverfarms
+Microsoft.Web/sites/config
+Microsoft.ServiceBus/namespaces/AuthorizationRules

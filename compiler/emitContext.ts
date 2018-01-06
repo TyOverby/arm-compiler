@@ -49,8 +49,8 @@ export class EmitContext {
     private resourcesList: string[] = [];
 
     // Creates a unique name for a type with schema `schema` at `path`
-    private calculateDotted(path: string, schema: Schema): string {
-        const goodName = tryGetGoodName(path, schema) || "t";
+    private calculateDotted(path: string, schema: Schema, insideResource: string | null): string {
+        const goodName = tryGetGoodName(path, schema, insideResource) || `t_${insideResource || ""}`;
         let counter;
         if (this.goodNamesCounter.has(goodName)) {
             counter = this.goodNamesCounter.get(goodName)! + 1;
@@ -58,9 +58,6 @@ export class EmitContext {
         } else {
             this.goodNamesCounter.set(goodName, 0);
             counter = 0;
-        }
-        if (goodName === "t" && counter === 611) {
-            console.log("here");
         }
 
         return `${goodName}${counter === 0 ? "" : `${counter}`}`;
@@ -70,8 +67,8 @@ export class EmitContext {
     // Preregistration is done early in the compilation of a type and
     // is intended to break cycles in the graph that would otherwise
     // recurse forever.
-    public preregister(path: string, schema: Schema) {
-        const name = this.calculateDotted(path, schema);
+    public preregister(path: string, schema: Schema, insideResource: string | null) {
+        const name = this.calculateDotted(path, schema, insideResource);
         this.defined.set(path, name);
     }
 
@@ -85,8 +82,8 @@ export class EmitContext {
     }
 
     // Adds a definition to emit.
-    public add(path: string, definition: string, schema: Schema): string {
-        const name = this.defined.get(path) || this.calculateDotted(path, schema);
+    public add(path: string, definition: string, schema: Schema, insideResource: string | null): string {
+        const name = this.defined.get(path) || this.calculateDotted(path, schema, insideResource);
         const comment = schema.description ?
             `/** ${schema.description}\ */\n` :
             ``;

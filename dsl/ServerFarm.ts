@@ -17,8 +17,8 @@ export class ServerFarm extends ResourceBase<ServerFarmOptions> implements Resou
         super(name, defaultOptions, options);
     }
 
-    public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit {
-        const ret: resources.MicrosoftWebserverfarmsResource2 = {
+    public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit[] {
+        const ret: resources.MicrosoftWeb_ServerfarmsResource2 = {
             type: this.type,
             apiVersion: "2016-09-01",
             name: this.name,
@@ -28,6 +28,6 @@ export class ServerFarm extends ResourceBase<ServerFarmOptions> implements Resou
             },
             location: this.options.location,
         };
-        return ret;
+        return [ret];
     }
 }

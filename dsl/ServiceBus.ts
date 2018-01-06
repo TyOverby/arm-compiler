@@ -4,7 +4,7 @@ import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, Resourc
 export type ServiceBusSku = "Basic" | "Standard" | "Premium";
 
 export interface ServiceBusOptions {
-    location: deployment_template.Location11;
+    location: deployment_template.ServiceBus_NamespacesLocation1;
     sku: ServiceBusSku;
 }
 
@@ -24,42 +24,25 @@ export class ServiceBus extends ResourceBase<ServiceBusOptions> implements Resou
         this.queues = queues;
     }
 
-    public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit {
-        const queueRes: QueueRes[] = this.queues.map(q => ({
-            type: "queues",
+    public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit[] {
+        const queues: resources.MicrosoftServiceBus_Namespaces_QueuesResource1[] = this.queues.map(q => ({
+            type: "Microsoft.ServiceBus/namespaces/queues",
             apiVersion: "2017-04-01",
             name: q.name,
-            location: this.options.location,
             properties: {},
-        } as QueueRes));
+            location: this.options.location,
+        } as resources.MicrosoftServiceBus_Namespaces_QueuesResource1));
 
-        interface QueueRes {
-            type: "queues";
-            apiVersion: "2017-04-01";
-            name: string;
-            location: deployment_template.Location11;
-            properties: {};
-        }
-        interface AuthRulesRes {
-            type: "AuthorizationRules";
-            apiVersion: "2017-04-01";
+        const authRules: resources.MicrosoftServiceBus_Namespaces_AuthorizationRulesResource1 = {
+            type: "Microsoft.ServiceBus/namespaces/AuthorizationRules",
+            name: `${this.name}_auth_rules`,
+            apiVersion: "2017-04-01",
             properties: {
-                rights: Array<"Send" | "Listen" | "Manage">;
-            };
-        }
-
-        const resres: Array<QueueRes | AuthRulesRes> = [
-            {
-                type: "AuthorizationRules",
-                apiVersion: "2017-04-01",
-                properties: {
-                    rights: ["Send", "Listen"],
-                },
+                rights: ["Send", "Listen"],
             },
-            ...queueRes,
-        ];
+        };
 
-        const resource: resources.MicrosoftServiceBusnamespacesResource1 = {
+        const resource: resources.MicrosoftServiceBus_NamespacesResource1 = {
             name: this.name,
             type: "Microsoft.ServiceBus/namespaces",
             apiVersion: "2017-04-01",
@@ -70,9 +53,8 @@ export class ServiceBus extends ResourceBase<ServiceBusOptions> implements Resou
             properties: {
                 serviceBusEndpoint: `https://${this.name}.servicebus.windows.net:443`,
             },
-            resources: resres,
         };
-
-        return resource;
+        // TODO: return queues and authRules, correctly fill out dependencies
+        return [resource];
     }
 }

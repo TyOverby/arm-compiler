@@ -3,6 +3,8 @@ import { JSONSchema4 } from "json-schema";
 import { Schema } from "./compiler";
 
 export function cleanse(s: string): string {
+    const splitted = s.split(".");
+    s = splitted.map(toTitleCase).join("");
     return s.replace(/[^a-zA-Z0-9_$]/g, "");
 }
 
@@ -29,7 +31,8 @@ export function isResource(name: string): boolean {
 // Attempts to choose a good name for the type at `path` with schema `schema`.
 // The name doesn't need to be unique, and it doesn't *really* need to be good.
 // Decent heuristics are all that are necessary.
-export function tryGetGoodName(path: string, schema: Schema): string | null {
+export function tryGetGoodName(path: string, schema: Schema, insideResource: string | null): string | null {
+    insideResource = insideResource || "";
     const split = path.split("/");
     split.shift(); // remove #
 
@@ -52,14 +55,14 @@ export function tryGetGoodName(path: string, schema: Schema): string | null {
     // #/definitions/{name}
     //
     if (split[0] === "definitions" && split.length === 2) {
-        return toTitleCase(split[1]);
+        return toTitleCase(insideResource) + toTitleCase(split[1]);
     }
 
     //
     // #/{name}
     //
     if (split.length === 1) {
-        return toTitleCase(split[0]);
+        return toTitleCase(insideResource) + toTitleCase(split[0]);
     }
 
     //
@@ -71,7 +74,7 @@ export function tryGetGoodName(path: string, schema: Schema): string | null {
         /^[A-Za-z_][0-9A-Za-z_]+$/.test(last) &&
         last !== "object") {
 
-        return toTitleCase(last);
+        return toTitleCase(insideResource) + toTitleCase(last);
     }
 
     return null;
