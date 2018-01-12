@@ -22,7 +22,7 @@ describe("the redis resource", () => {
     it("produces a reasonable output when emitted directly", () => {
         const redisCache = new Redis("redis_name");
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
-        const emitted = redisCache.emit(emitInfo);
+        const [emitted] = redisCache.emit(emitInfo);
         expect(emitted).to.be.deep.equal({
             apiVersion: "2016-04-01",
             name: "redis_name",

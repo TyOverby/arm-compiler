@@ -1,6 +1,6 @@
 import { assert } from "../../compiler/util";
 import { deployment_template } from "../../dist/deploymentTemplate";
-import { Resource } from "./Resource";
+import { EmitProperties, Resource, ResourceEmit } from "./Resource";
 
 type ResourcesValue = deployment_template.ResourcesValue;
 
@@ -22,32 +22,46 @@ function verify_no_duplicate_names(resources: Resource[]) {
         registerResource(res);
     }
 }
+
+export function formatIdFor(emitProperties: EmitProperties, resourceEmit: ResourceEmit): string {
+    return formatId(
+        emitProperties.subscription_name,
+        emitProperties.resource_group_name,
+        resourceEmit.type,
+        resourceEmit.name);
+}
+
 export function formatId(subName: string, rgName: string, type: string, name: string): string {
     return `/subscriptions/${subName}/resourceGroups/${rgName}/providers/${type}/${name}`;
 }
 
 function flatten(subName: string, rgName: string, resources: Resource[]): deployment_template.ResourcesValue[] {
     const out: deployment_template.ResourcesValue[] = [];
-    const visited: Map<string, ResourcesValue> = new Map();
+    const visited: Map<string, ResourcesValue[]> = new Map();
 
-    const flattenIndiv = (resource: Resource): ResourcesValue => {
+    const flattenIndiv = (resource: Resource): ResourcesValue[] => {
         if (visited.has(resource.name)) {
             return visited.get(resource.name)!;
         }
-        const emitValue = resource.emit({ subscription_name: subName, resource_group_name: rgName });
-        visited.set(resource.name, emitValue);
 
-        assert(emitValue.dependsOn === undefined, "resources should not manually emit dependsOn properties");
-        emitValue.dependsOn = [];
+        const emitValues = resource.emit({ subscription_name: subName, resource_group_name: rgName });
+        visited.set(resource.name, emitValues);
+        for (const emitted of emitValues) {
 
-        for (const dep of resource.dependencies) {
-            const depValue = flattenIndiv(dep);
-            const dependencyName = formatId(subName, rgName, depValue.type, depValue.name);
-            emitValue.dependsOn.push(dependencyName);
+            emitted.dependsOn = emitted.dependsOn || [];
+
+            for (const dep of resource.dependencies) {
+                const depValues = flattenIndiv(dep);
+                for (const depValue of depValues) {
+                    const dependencyName = formatId(subName, rgName, depValue.type, depValue.name);
+                    emitted.dependsOn.push(dependencyName);
+                }
+            }
+
+            out.push(emitted);
         }
-        out.push(emitValue);
 
-        return emitValue;
+        return emitValues;
     };
 
     for (const res of resources) {
@@ -57,7 +71,7 @@ function flatten(subName: string, rgName: string, resources: Resource[]): deploy
     return out;
 }
 
-export function compile(subName: string, rgName: string, ...resources: Resource[]): deployment_template.t {
+export function compile(subName: string, rgName: string, ...resources: Resource[]): deployment_template.t_ {
     verify_no_duplicate_names(resources);
     const out = flatten(subName, rgName, resources);
 

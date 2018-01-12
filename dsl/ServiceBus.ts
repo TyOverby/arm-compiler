@@ -1,5 +1,6 @@
 import { deployment_template, resources } from "../dist/deploymentTemplate";
 import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
+import { formatIdFor } from "../index";
 
 export type ServiceBusSku = "Basic" | "Standard" | "Premium";
 
@@ -25,23 +26,6 @@ export class ServiceBus extends ResourceBase<ServiceBusOptions> implements Resou
     }
 
     public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit[] {
-        const queues: resources.MicrosoftServiceBus_Namespaces_QueuesResource1[] = this.queues.map(q => ({
-            type: "Microsoft.ServiceBus/namespaces/queues",
-            apiVersion: "2017-04-01",
-            name: q.name,
-            properties: {},
-            location: this.options.location,
-        } as resources.MicrosoftServiceBus_Namespaces_QueuesResource1));
-
-        const authRules: resources.MicrosoftServiceBus_Namespaces_AuthorizationRulesResource1 = {
-            type: "Microsoft.ServiceBus/namespaces/AuthorizationRules",
-            name: `${this.name}_auth_rules`,
-            apiVersion: "2017-04-01",
-            properties: {
-                rights: ["Send", "Listen"],
-            },
-        };
-
         const resource: resources.MicrosoftServiceBus_NamespacesResource1 = {
             name: this.name,
             type: "Microsoft.ServiceBus/namespaces",
@@ -54,7 +38,26 @@ export class ServiceBus extends ResourceBase<ServiceBusOptions> implements Resou
                 serviceBusEndpoint: `https://${this.name}.servicebus.windows.net:443`,
             },
         };
-        // TODO: return queues and authRules, correctly fill out dependencies
-        return [resource];
+
+        const queues: resources.MicrosoftServiceBus_Namespaces_QueuesResource1[] = this.queues.map(q => ({
+            type: "Microsoft.ServiceBus/namespaces/queues",
+            apiVersion: "2017-04-01",
+            name: q.name,
+            properties: {},
+            location: this.options.location,
+            dependsOn: [formatIdFor(emitProperties, resource)],
+        } as resources.MicrosoftServiceBus_Namespaces_QueuesResource1));
+
+        const authRules: resources.MicrosoftServiceBus_Namespaces_AuthorizationRulesResource1 = {
+            type: "Microsoft.ServiceBus/namespaces/AuthorizationRules",
+            name: `${this.name}_auth_rules`,
+            apiVersion: "2017-04-01",
+            properties: {
+                rights: ["Send", "Listen"],
+            },
+            dependsOn: [formatIdFor(emitProperties, resource)],
+        };
+
+        return [resource, authRules, ...queues];
     }
 }

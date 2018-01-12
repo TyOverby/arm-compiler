@@ -5,11 +5,12 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "prepublish": "mkdir -p dist && npm run compile && npm run copy-files && npm run format && tsc",
+    "prepublish": "mkdir -p dist && npm run compile && npm run copy-files && npm run format && npm run tsc",
     "compile": "ts-node compiler/compiler.ts compiler/_template.json dist/deploymentTemplate.d.ts whitelist.txt",
     "copy-files": "mkdir -p dist/dist/ && cp dist/deploymentTemplate.d.ts dist/dist/",
     "format": "tsfmt -r dist/deploymentTemplate.d.ts",
     "build": "npm run prepublish",
+    "tsc": "tsc",
     "test": "mocha -r ts-node/register tests/**/*.ts"
   },
   "author": "",

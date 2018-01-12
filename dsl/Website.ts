@@ -1,11 +1,12 @@
 import { deployment_template, resources } from "../dist/deploymentTemplate";
 
-import { ContainerRegistry, formatId } from "../index";
+import { assert } from "../compiler/util";
+import { ContainerRegistry, formatId, formatIdFor } from "../index";
 import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
 import { ServerFarm } from "./ServerFarm";
 
 export type WebsiteOptions = AdditionalDependencies & {
-    location: deployment_template.Location,
+    location: deployment_template.Web_SitesLocation2,
     serverFarm: ServerFarm | null,
     docker: null | {
         containerRegistry: ContainerRegistry | string,
@@ -30,8 +31,8 @@ class WebsiteConfig extends ResourceBase<WebsiteConfigOptions> implements Resour
         super(name, options, options);
     }
 
-    public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit {
-        const out: resources.MicrosoftWebsitesconfigResource1 = {
+    public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit[] {
+        const out: resources.MicrosoftWeb_Sites_ConfigResource1 = {
             name: "appsettings",
             type: "Microsoft.Web/sites/config",
             apiVersion: "2016-08-01",
@@ -40,7 +41,7 @@ class WebsiteConfig extends ResourceBase<WebsiteConfigOptions> implements Resour
             },
         };
 
-        return out;
+        return [out];
     }
 }
 
@@ -71,17 +72,15 @@ export class WebSite extends ResourceBase<WebsiteOptions> implements Resource {
         }
     }
 
-    public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit {
+    public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit[] {
+        const out = [];
         const serverFarmId = this.options.serverFarm === null ? undefined :
             formatId(emitProperties.subscription_name,
                 emitProperties.resource_group_name,
                 this.options.serverFarm.type,
                 this.options.serverFarm.name);
 
-        const linuxFxVersion = this.options.docker === null ? undefined :
-            `DOCKER|${this.containerRegistryName}.azurecr.io/${this.options.docker.image}:${this.options.docker.tag}`;
-
-        const resource: resources.MicrosoftWebsitesResource = {
+        const resource: resources.MicrosoftWeb_SitesResource = {
             type: "Microsoft.Web/sites",
             apiVersion: "2016-08-01",
             name: this.name,
@@ -90,7 +89,20 @@ export class WebSite extends ResourceBase<WebsiteOptions> implements Resource {
                 serverFarmId,
             },
         };
+        out.push(resource);
 
-        return resource;
+        const linuxFxVersion = this.options.docker === null ? undefined :
+            `DOCKER|${this.containerRegistryName}.azurecr.io/${this.options.docker.image}:${this.options.docker.tag}`;
+        if (linuxFxVersion) {
+            const websiteConfig = new WebsiteConfig(`${this.name}_config`, { linuxFxVersion });
+            const emitted = websiteConfig.emit(emitProperties);
+            assert(emitted.length === 1);
+            assert(emitted[0].dependsOn === undefined);
+            emitted[0].dependsOn = [];
+            emitted[0].dependsOn!.push(formatIdFor(emitProperties, resource));
+            out.push(emitted[0]);
+        }
+
+        return out;
     }
 }

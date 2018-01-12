@@ -28,7 +28,7 @@ describe("the registry resource", () => {
     it("produces a reasonable output when emitted directly", () => {
         const registry = new ContainerRegistry("registryname");
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
-        const emitted = registry.emit(emitInfo);
+        const [emitted] = registry.emit(emitInfo);
         expect(emitted).to.be.deep.equal({
             apiVersion: "2017-10-01",
             name: "registryname",
@@ -49,7 +49,7 @@ describe("the registry resource", () => {
         });
 
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
-        const emitted = registry.emit(emitInfo);
+        const [emitted] = registry.emit(emitInfo);
         expect(emitted).to.be.deep.equal({
             apiVersion: "2017-10-01",
             name: "registryname",

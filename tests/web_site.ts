@@ -1,7 +1,7 @@
 import { assert, expect } from "chai";
 import "mocha";
 import { WebSite } from "../dsl/Website";
-import { ContainerRegistry, ServerFarm, compile } from "../index";
+import { compile, ContainerRegistry, ServerFarm } from "../index";
 
 describe("the website resource", () => {
     it("can be constructed", () => {
@@ -23,7 +23,7 @@ describe("the website resource", () => {
     it("produces a reasonable output when emitted directly", () => {
         const website = new WebSite("site_name");
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
-        const emitted = website.emit(emitInfo);
+        const [emitted] = website.emit(emitInfo);
         expect(emitted).to.be.deep.equal({
             apiVersion: "2016-08-01",
             type: "Microsoft.Web/sites",
@@ -32,16 +32,6 @@ describe("the website resource", () => {
             properties: {
                 serverFarmId: undefined,
             },
-            resources: [
-                {
-                    apiVersion: "2016-08-01",
-                    type: "config",
-                    name: "appsettings",
-                    properties: {
-                        linuxFxVersion: undefined,
-                    },
-                },
-            ],
         });
     });
 
@@ -49,23 +39,13 @@ describe("the website resource", () => {
         const serverFarm = new ServerFarm("farm_name");
         const website = new WebSite("site_name", { serverFarm });
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
-        const emitted = website.emit(emitInfo);
+        const [emitted] = website.emit(emitInfo);
         expect(emitted).to.be.deep.equal({
             apiVersion: "2016-08-01",
             name: "site_name",
             properties: {
                 serverFarmId: "/subscriptions/s_name/resourceGroups/rg_name/providers/Microsoft.Web/serverfarms/farm_name",
             },
-            resources: [
-                {
-                    apiVersion: "2016-08-01",
-                    type: "config",
-                    name: "appsettings",
-                    properties: {
-                        linuxFxVersion: undefined,
-                    },
-                },
-            ],
             type: "Microsoft.Web/sites",
             location: "West US",
         });
@@ -81,7 +61,7 @@ describe("the website resource", () => {
             },
         });
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
-        const emitted = website.emit(emitInfo);
+        const [emitted, config] = website.emit(emitInfo);
         expect(emitted).to.be.deep.equal({
             apiVersion: "2016-08-01",
             name: "site_name",
@@ -90,16 +70,17 @@ describe("the website resource", () => {
             properties: {
                 serverFarmId: undefined,
             },
-            resources: [
-                {
-                    apiVersion: "2016-08-01",
-                    type: "config",
-                    name: "appsettings",
-                    properties: {
-                        linuxFxVersion: "DOCKER|mycontainers.azurecr.io/image_name:latest",
-                    },
-                },
+        });
+        expect(config).to.deep.equal({
+            apiVersion: "2016-08-01",
+            dependsOn: [
+                "/subscriptions/s_name/resourceGroups/rg_name/providers/Microsoft.Web/sites/site_name",
             ],
+            name: "appsettings",
+            properties: {
+                linuxFxVersion: "DOCKER|mycontainers.azurecr.io/image_name:latest",
+            },
+            type: "Microsoft.Web/sites/config",
         });
     });
 
@@ -117,7 +98,7 @@ describe("the website resource", () => {
 
         const out = compile("my_subscription_name", "my_resource_group", website);
 
-        expect(out.resources.length).to.be.equal(3);
+        expect(out.resources.length).to.be.equal(4);
         expect(out.resources.some(r => r.type === "Microsoft.Web/sites")).to.be.equal(true);
         expect(out.resources.some(r => r.type === "Microsoft.ContainerRegistry/registries")).to.be.equal(true);
         expect(out.resources.some(r => r.type === "Microsoft.Web/serverfarms")).to.be.equal(true);

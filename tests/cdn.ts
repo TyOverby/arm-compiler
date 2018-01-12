@@ -25,7 +25,7 @@ describe("the cdn resource", () => {
         });
 
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
-        const emitted = cdnCache.emit(emitInfo);
+        const [emitted] = cdnCache.emit(emitInfo);
         expect(emitted.location).equals("East US");
         expect((emitted as any).resources[0].location).equals("East US");
     });
@@ -36,7 +36,7 @@ describe("the cdn resource", () => {
         });
 
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
-        const emitted = cdnCache.emit(emitInfo);
+        const [emitted] = cdnCache.emit(emitInfo);
         expect((emitted as any).resources[0].properties.isCompressionEnabled).equals(false);
     });
 
@@ -46,14 +46,14 @@ describe("the cdn resource", () => {
         });
 
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
-        const emitted = cdnCache.emit(emitInfo);
+        const [emitted] = cdnCache.emit(emitInfo);
         expect((emitted as any).sku.name).equals("Standard_Akamai");
     });
 
     it("produces a reasonable output when emitted directly", () => {
         const cdnCache = new Cdn("cdn_name_here", "myhostname", "myoriginname");
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
-        const emitted = cdnCache.emit(emitInfo);
+        const [emitted] = cdnCache.emit(emitInfo);
         expect(emitted).to.be.deep.equal({
             apiVersion: "2016-04-02",
             location: "West US",
@@ -63,6 +63,7 @@ describe("the cdn resource", () => {
                 {
                     apiVersion: "2016-04-02",
                     location: "West US",
+                    name: "cdn_name_here_endpoint",
                     properties: {
                         isCompressionEnabled: true,
                         originHostHeader: "myhostname",
