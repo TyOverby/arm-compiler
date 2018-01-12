@@ -25,9 +25,9 @@ describe("the cdn resource", () => {
         });
 
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
-        const [emitted] = cdnCache.emit(emitInfo);
+        const [emitted, endpoint] = cdnCache.emit(emitInfo);
         expect(emitted.location).equals("East US");
-        expect((emitted as any).resources[0].location).equals("East US");
+        expect((endpoint as any).location).equals("East US");
     });
 
     it("can have the compression overridden", () => {
@@ -36,8 +36,8 @@ describe("the cdn resource", () => {
         });
 
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
-        const [emitted] = cdnCache.emit(emitInfo);
-        expect((emitted as any).resources[0].properties.isCompressionEnabled).equals(false);
+        const [emitted, endpoint] = cdnCache.emit(emitInfo);
+        expect((endpoint as any).properties.isCompressionEnabled).equals(false);
     });
 
     it("can have the sku overridden", () => {
@@ -53,35 +53,36 @@ describe("the cdn resource", () => {
     it("produces a reasonable output when emitted directly", () => {
         const cdnCache = new Cdn("cdn_name_here", "myhostname", "myoriginname");
         const emitInfo = { resource_group_name: "rg_name", subscription_name: "s_name" };
-        const [emitted] = cdnCache.emit(emitInfo);
+        const [emitted, endpoint] = cdnCache.emit(emitInfo);
         expect(emitted).to.be.deep.equal({
             apiVersion: "2016-04-02",
             location: "West US",
             name: "cdn_name_here",
             type: "Microsoft.Cdn/profiles",
-            resources: [
-                {
-                    apiVersion: "2016-04-02",
-                    location: "West US",
-                    name: "cdn_name_here_endpoint",
-                    properties: {
-                        isCompressionEnabled: true,
-                        originHostHeader: "myhostname",
-                        origins: [
-                            {
-                                name: "myoriginname",
-                                properties: {
-                                    hostName: "myhostname",
-                                },
-                            },
-                        ],
-                    },
-                    type: "endpoints",
-                },
-            ],
             sku: {
                 name: "Standard_Verizon",
             },
+        });
+        expect(endpoint).to.be.deep.equal({
+            type: "Microsoft.Cdn/profiles/endpoints",
+            apiVersion: "2016-04-02",
+            location: "West US",
+            name: "cdn_name_here_endpoint",
+            properties: {
+                isCompressionEnabled: true,
+                originHostHeader: "myhostname",
+                origins: [
+                    {
+                        name: "myoriginname",
+                        properties: {
+                            hostName: "myhostname",
+                        },
+                    },
+                ],
+            },
+            dependsOn: [
+                "/subscriptions/s_name/resourceGroups/rg_name/providers/Microsoft.Cdn/profiles/cdn_name_here",
+            ],
         });
     });
 });

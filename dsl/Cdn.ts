@@ -1,6 +1,7 @@
 
 import { deployment_template, resources } from "../dist/deploymentTemplate";
 import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
+import { formatIdFor } from "../index";
 
 export type CdnSku = "Standard_Verizon" | "Premium_Verizon" | "Custom_Verizon" | "Standard_Akamai";
 export interface CdnOptions {
@@ -34,24 +35,26 @@ export class Cdn extends ResourceBase<CdnOptions> implements Resource {
             sku: {
                 name: this.options.sku,
             },
-            resources: [{
-                type: "endpoints",
-                name: `${this.name}_endpoint`,
-                apiVersion: "2016-04-02",
-                location: this.options.location,
-                properties: {
-                    originHostHeader: this.hostname,
-                    isCompressionEnabled: this.options.isCompressionEnabled,
-                    origins: [{
-                        name: this.originname,
-                        properties: {
-                            hostName: this.hostname,
-                        },
-                    }],
-                },
-            } as any],
         };
 
-        return [cdnResource];
+        const cdnEndpointResource: resources.MicrosoftCdn_Profiles_EndpointsResource1 = {
+            type: "Microsoft.Cdn/profiles/endpoints",
+            apiVersion: "2016-04-02",
+            name: `${this.name}_endpoint`,
+            location: this.options.location,
+            properties: {
+                originHostHeader: this.hostname,
+                isCompressionEnabled: this.options.isCompressionEnabled,
+                origins: [{
+                    name: this.originname,
+                    properties: {
+                        hostName: this.hostname,
+                    },
+                }],
+            },
+            dependsOn: [formatIdFor(emitProperties, cdnResource)],
+        };
+
+        return [cdnResource, cdnEndpointResource];
     }
 }

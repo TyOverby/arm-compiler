@@ -2,6 +2,7 @@ Microsoft.Cache/Redis
 Microsoft.Web/sites
 Microsoft.ContainerRegistry/registries
 Microsoft.Cdn/profiles
+Microsoft.Cdn/profiles/endpoints
 Microsoft.ServiceBus/namespaces
 Microsoft.ServiceBus/namespaces/queues
 Microsoft.Web/serverfarms
