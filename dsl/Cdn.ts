@@ -1,17 +1,19 @@
 
 import { deployment_template, resources } from "../dist/deploymentTemplate";
-import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
 import { formatIdFor } from "../index";
+import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
 
 export type CdnSku = "Standard_Verizon" | "Premium_Verizon" | "Custom_Verizon" | "Standard_Akamai";
 export interface CdnOptions {
     isCompressionEnabled: boolean;
     location: deployment_template.Cdn_ProfilesLocation1;
+    compressionForMimeTypes: string[];
     sku: CdnSku;
 }
 
 const defaultOptions: CdnOptions = {
-    isCompressionEnabled: true,
+    isCompressionEnabled: false,
+    compressionForMimeTypes: [],
     location: "West US",
     sku: "Standard_Verizon",
 };
@@ -40,11 +42,12 @@ export class Cdn extends ResourceBase<CdnOptions> implements Resource {
         const cdnEndpointResource: resources.MicrosoftCdn_Profiles_EndpointsResource1 = {
             type: "Microsoft.Cdn/profiles/endpoints",
             apiVersion: "2016-04-02",
-            name: `${this.name}_endpoint`,
+            name: `${this.name}/${this.name}endpoint`,
             location: this.options.location,
             properties: {
                 originHostHeader: this.hostname,
                 isCompressionEnabled: this.options.isCompressionEnabled,
+                contentTypesToCompress: this.options.compressionForMimeTypes,
                 origins: [{
                     name: this.originname,
                     properties: {

@@ -28,12 +28,14 @@ interface WebsiteConfigOptions {
 
 class WebsiteConfig extends ResourceBase<WebsiteConfigOptions> implements Resource {
     constructor(name: string, options: WebsiteConfigOptions) {
+        const validName = /[a-z][A-Z0-9]*/;
+        assert(validName.test(name), `${name} is not a valid websites name`);
         super(name, options, options);
     }
 
     public emit(emitProperties: Readonly<EmitProperties>): ResourceEmit[] {
         const out: resources.MicrosoftWeb_Sites_ConfigResource1 = {
-            name: "appsettings",
+            name: `${this.name}/appsettings`,
             type: "Microsoft.Web/sites/config",
             apiVersion: "2016-08-01",
             properties: {
@@ -94,7 +96,7 @@ export class WebSite extends ResourceBase<WebsiteOptions> implements Resource {
         const linuxFxVersion = this.options.docker === null ? undefined :
             `DOCKER|${this.containerRegistryName}.azurecr.io/${this.options.docker.image}:${this.options.docker.tag}`;
         if (linuxFxVersion) {
-            const websiteConfig = new WebsiteConfig(`${this.name}_config`, { linuxFxVersion });
+            const websiteConfig = new WebsiteConfig(this.name, { linuxFxVersion });
             const emitted = websiteConfig.emit(emitProperties);
             assert(emitted.length === 1);
             assert(emitted[0].dependsOn === undefined);

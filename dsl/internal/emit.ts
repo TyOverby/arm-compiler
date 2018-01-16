@@ -32,7 +32,7 @@ export function formatIdFor(emitProperties: EmitProperties, resourceEmit: Resour
 }
 
 export function formatId(subName: string, rgName: string, type: string, name: string): string {
-    return `/subscriptions/${subName}/resourceGroups/${rgName}/providers/${type}/${name}`;
+    return `[resourceId('${subName}', '${rgName}', '${type}', '${name}')]`;
 }
 
 function flatten(subName: string, rgName: string, resources: Resource[]): deployment_template.ResourcesValue[] {
@@ -55,6 +55,9 @@ function flatten(subName: string, rgName: string, resources: Resource[]): deploy
                 for (const depValue of depValues) {
                     const dependencyName = formatId(subName, rgName, depValue.type, depValue.name);
                     emitted.dependsOn.push(dependencyName);
+                    // Only depend on the first item that is emitted
+                    // TODO: make this more strongly typed
+                    break;
                 }
             }
 

@@ -4,11 +4,19 @@ import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, Resourc
 export interface ServerFarmOptions {
     worker_count: number;
     location: string;
+    sku: deployment_template.t_Web_Serverfarms2;
 }
 
 const defaultOptions: ServerFarmOptions = {
     worker_count: 1,
     location: "West US",
+    sku: {
+        name: "S3",
+        tier: "Standard",
+        size: "S3",
+        family: "S",
+        capacity: 10,
+    },
 };
 
 export class ServerFarm extends ResourceBase<ServerFarmOptions> implements Resource {
@@ -22,6 +30,7 @@ export class ServerFarm extends ResourceBase<ServerFarmOptions> implements Resou
             type: this.type,
             apiVersion: "2016-09-01",
             name: this.name,
+            sku: this.options.sku,
             properties: {
                 name: this.name,
                 numberOfWorkers: this.options.worker_count,

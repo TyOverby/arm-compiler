@@ -1,6 +1,7 @@
+import { assert } from "../compiler/util";
 import { deployment_template, resources } from "../dist/deploymentTemplate";
-import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
 import { formatIdFor } from "../index";
+import { AdditionalDependencies, EmitProperties, Resource, ResourceBase, ResourceEmit } from "./internal/Resource";
 
 export type ServiceBusSku = "Basic" | "Standard" | "Premium";
 
@@ -21,6 +22,8 @@ export interface Queue {
 export class ServiceBus extends ResourceBase<ServiceBusOptions> implements Resource {
     private readonly queues: Queue[];
     constructor(name: string, queues: Queue[], options?: Partial<ServiceBusOptions>) {
+        const validName = /^[a-zA-Z0-9]+$/;
+        assert(validName.test(name), "service bus names must alphanumeric only");
         super(name, defaultOptions, options);
         this.queues = queues;
     }
@@ -42,7 +45,7 @@ export class ServiceBus extends ResourceBase<ServiceBusOptions> implements Resou
         const queues: resources.MicrosoftServiceBus_Namespaces_QueuesResource1[] = this.queues.map(q => ({
             type: "Microsoft.ServiceBus/namespaces/queues",
             apiVersion: "2017-04-01",
-            name: q.name,
+            name: `${this.name}/${q.name}`,
             properties: {},
             location: this.options.location,
             dependsOn: [formatIdFor(emitProperties, resource)],
@@ -50,7 +53,7 @@ export class ServiceBus extends ResourceBase<ServiceBusOptions> implements Resou
 
         const authRules: resources.MicrosoftServiceBus_Namespaces_AuthorizationRulesResource1 = {
             type: "Microsoft.ServiceBus/namespaces/AuthorizationRules",
-            name: `${this.name}_auth_rules`,
+            name: `${this.name}/authorization_rules`,
             apiVersion: "2017-04-01",
             properties: {
                 rights: ["Send", "Listen"],

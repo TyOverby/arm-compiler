@@ -44,7 +44,7 @@ describe("the website resource", () => {
             apiVersion: "2016-08-01",
             name: "site_name",
             properties: {
-                serverFarmId: "/subscriptions/s_name/resourceGroups/rg_name/providers/Microsoft.Web/serverfarms/farm_name",
+                serverFarmId: "[resourceId('s_name', 'rg_name', 'Microsoft.Web/serverfarms', 'farm_name')]",
             },
             type: "Microsoft.Web/sites",
             location: "West US",
@@ -74,9 +74,9 @@ describe("the website resource", () => {
         expect(config).to.deep.equal({
             apiVersion: "2016-08-01",
             dependsOn: [
-                "/subscriptions/s_name/resourceGroups/rg_name/providers/Microsoft.Web/sites/site_name",
+                "[resourceId('s_name', 'rg_name', 'Microsoft.Web/sites', 'site_name')]",
             ],
-            name: "appsettings",
+            name: "site_name/appsettings",
             properties: {
                 linuxFxVersion: "DOCKER|mycontainers.azurecr.io/image_name:latest",
             },

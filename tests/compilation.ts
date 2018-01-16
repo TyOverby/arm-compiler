@@ -54,6 +54,6 @@ describe("compilation", () => {
         expect(found2).to.not.be.null;
 
         expect(found2!.dependsOn![0]).to.be.equal(
-            "/subscriptions/my_subscription/resourceGroups/my_resource_group/providers/Microsoft.Web/sites/website_1");
+            "[resourceId('my_subscription', 'my_resource_group', 'Microsoft.Web/sites', 'website_1')]");
     });
 });

@@ -27,6 +27,7 @@ export class ResourceBase<O> {
 
     constructor(name: string, defaultOptions: O, providedOptions?: Partial<O & AdditionalDependencies>) {
         assert(/^[a-zA-z_][a-zA-Z0-9_]*$/.test(name), `Illegal name for resource "${name}"`);
+        assert(name.length < 50);
         this.name = name;
         this.options = {
             dependencies: [],

@@ -63,13 +63,15 @@ describe("the cdn resource", () => {
                 name: "Standard_Verizon",
             },
         });
+
         expect(endpoint).to.be.deep.equal({
             type: "Microsoft.Cdn/profiles/endpoints",
             apiVersion: "2016-04-02",
             location: "West US",
-            name: "cdn_name_here_endpoint",
+            name: "cdn_name_here/cdn_name_hereendpoint",
             properties: {
-                isCompressionEnabled: true,
+                isCompressionEnabled: false,
+                contentTypesToCompress: [],
                 originHostHeader: "myhostname",
                 origins: [
                     {
@@ -81,7 +83,7 @@ describe("the cdn resource", () => {
                 ],
             },
             dependsOn: [
-                "/subscriptions/s_name/resourceGroups/rg_name/providers/Microsoft.Cdn/profiles/cdn_name_here",
+                "[resourceId('s_name', 'rg_name', 'Microsoft.Cdn/profiles', 'cdn_name_here')]",
             ],
         });
     });
